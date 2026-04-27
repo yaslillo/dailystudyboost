@@ -281,10 +281,18 @@ function App() {
         <button onClick={logout}>Cerrar sesión</button>
       </header>
 
-      <section className="summary">
-        <h2>Progreso</h2>
-        <p>{completedDays.length}/30 días</p>
-      </section>
+    <section className="summary">
+  <h2>Progreso</h2>
+
+  <div className="progress-bar">
+    <div
+      className="progress-fill"
+      style={{ width: '${(completedDays.length / 30) * 100}%' }}
+    ></div>
+  </div>
+
+  <p>{completedDays.length}/30 días completados</p>
+</section>
 
       <section className="pomodoro">
         <h2>Pomodoro</h2>
@@ -331,10 +339,12 @@ function App() {
               const medals = ["🥇", "🥈", "🥉"];
 
               return (
-                <div className="ranking-card" key={index}>
-                  <div className="rank-position">
-                    {medals[index] || "#" + (index + 1)}
-                  </div>
+             <div
+             className={`ranking-card ${index === 0 ? "gold" : ""} ${
+              index === 1 ? "silver" : ""
+                } ${index === 2 ? "bronze" : ""}`}
+                   key={index}
+                     >
 
                   <div className="rank-info">
                     <p className="rank-name">
