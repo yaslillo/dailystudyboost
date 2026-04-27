@@ -262,7 +262,9 @@ function App() {
           ) : (
             <>
               <button onClick={login}>Iniciar sesión</button>
-              <button onClick={() => setIsRegistering(true}>Registrarse</button>
+              <button onClick={() => setIsRegistering(true)}>
+                Registrarse
+              </button>
             </>
           )}
         </div>
@@ -353,5 +355,3 @@ function App() {
 }
 
 export default App;
-
-      
