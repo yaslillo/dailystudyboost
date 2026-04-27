@@ -151,41 +151,44 @@ function App() {
     setIsRegistering(false);
   };
 
-  const loadProgress = async (uid) => {
-    const ref = doc(db, "users", uid);
-    const snap = await getDoc(ref);
+const loadProgress = async (uid) => {
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
 
-    if (snap.exists()) {
-      const data = snap.data();
-      setCompletedDays(data.completedDays || []);
-      setStudentName(data.name || data.email || "");
-    } else {
-      setCompletedDays([]);
-    }
-  };
+  if (snap.exists()) {
+    const data = snap.data();
+    setCompletedDays(data.completedDays || []);
+    setStudentName(data.name || data.email || "");
+  } else {
+    setCompletedDays([]);
+  }
+};
 
   const saveProgress = async (newDays) => {
-    if (!user) return;
+  const currentUser = auth.currentUser;
 
-    const ref = doc(db, "users", user.uid);
-    const snap = await getDoc(ref);
-    const oldData = snap.exists() ? snap.data() : {};
+  if (!currentUser) return;
 
-    await setDoc(
-      ref,
-      {
-        ...oldData,
-        name: oldData.name || studentName || user.email,
-        email: user.email,
-        completedDays: newDays,
-        progress: newDays.length,
-      },
-      { merge: true }
-    );
+  const ref = doc(db, "users", currentUser.uid);
+  const snap = await getDoc(ref);
+  const oldData = snap.exists() ? snap.data() : {};
 
-    await loadProgress(user.uid);
-    await loadRanking();
-  };
+  await setDoc(
+    ref,
+    {
+      ...oldData,
+      name: oldData.name || studentName || currentUser.email,
+      email: currentUser.email,
+      completedDays: newDays,
+      progress: newDays.length,
+    },
+    { merge: true }
+  );
+
+  await loadProgress(currentUser.uid);
+  await loadRanking();
+};
+
 
   const loadRanking = async () => {
     const snapshot = await getDocs(collection(db, "users"));
@@ -205,18 +208,18 @@ function App() {
     setRanking(sorted);
   };
 
-  const toggleChallenge = async (index) => {
-    let updated;
+const toggleChallenge = async (index) => {
+  let updated;
 
-    if (completedDays.includes(index)) {
-      updated = completedDays.filter((day) => day !== index);
-    } else {
-      updated = [...completedDays, index];
-    }
+  if (completedDays.includes(index)) {
+    updated = completedDays.filter((day) => day !== index);
+  } else {
+    updated = [...completedDays, index];
+  }
 
-    setCompletedDays(updated);
-    await saveProgress(updated);
-  };
+  setCompletedDays(updated);
+  await saveProgress(updated);
+};
 
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
