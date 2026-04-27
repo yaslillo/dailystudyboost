@@ -11,50 +11,53 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 
-import { doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  getDocs,
+} from "firebase/firestore";
 
 function App() {
-const challenges = [
-  "Día 1: Define tu meta principal",
-  "Día 2: Estudia 15 minutos sin distracciones",
-  "Día 3: Organiza tu espacio de estudio",
-  "Día 4: Usa la técnica Pomodoro\n25 min de estudio + 5 min de descanso\nRepite 4 veces y luego toma un descanso más largo",
-  "Día 5: Elimina 1 distracción importante",
-  "Día 6: Haz un resumen de lo aprendido",
-  "Día 7: Evalúa tu semana",
-  "Día 8: Prueba mapas mentales",
-  "Día 9: Estudia enseñando",
-  "Día 10: Técnica Feynman\nExplica el tema con palabras simples\nComo si se lo enseñaras a un niño. Si no puedes, vuelve a estudiar",
-  "Día 11: Haz preguntas sobre el tema",
-  "Día 12: Practica con ejercicios",
-  "Día 13: Repaso activo",
-  "Día 14: Test rápido",
-  "Día 15: Estudia aunque no tengas motivación",
-  "Día 16: Bloquea redes sociales",
-  "Día 17: Haz 2 sesiones Pomodoro",
-  "Día 18: Estudia a la misma hora",
-  "Día 19: Identifica tu mejor horario",
-  "Día 20: Estudia un tema difícil primero",
-  "Día 21: Recompénsate por cumplir",
-  "Día 22: Planifica tu semana completa",
-  "Día 23: Estudio profundo 45 min",
-  "Día 24: Simula una prueba",
-  "Día 25: Corrige errores",
-  "Día 26: Enseña a alguien",
-  "Día 27: Revisa todo el progreso",
-  "Día 28: Optimiza tu método",
-  "Día 29: Estudia con máxima concentración",
-  "Día 30: Reflexión final + nuevos objetivos",
-];
-
+  const challenges = [
+    "Día 1: Define tu meta principal",
+    "Día 2: Estudia 15 minutos sin distracciones",
+    "Día 3: Organiza tu espacio de estudio",
+    "Día 4: Usa la técnica Pomodoro\n25 min de estudio + 5 min de descanso\nRepite 4 veces y toma un descanso largo",
+    "Día 5: Elimina 1 distracción importante",
+    "Día 6: Haz un resumen de lo aprendido",
+    "Día 7: Evalúa tu semana",
+    "Día 8: Prueba mapas mentales",
+    "Día 9: Estudia enseñando",
+    "Día 10: Técnica Feynman\nExplica el tema con palabras simples\nSi no puedes, vuelve a estudiar",
+    "Día 11: Haz preguntas sobre el tema",
+    "Día 12: Practica con ejercicios",
+    "Día 13: Repaso activo",
+    "Día 14: Test rápido",
+    "Día 15: Estudia aunque no tengas motivación",
+    "Día 16: Bloquea redes sociales",
+    "Día 17: Haz 2 sesiones Pomodoro",
+    "Día 18: Estudia a la misma hora",
+    "Día 19: Identifica tu mejor horario",
+    "Día 20: Estudia un tema difícil primero",
+    "Día 21: Recompénsate por cumplir",
+    "Día 22: Planifica tu semana completa",
+    "Día 23: Estudio profundo 45 min",
+    "Día 24: Simula una prueba",
+    "Día 25: Corrige errores",
+    "Día 26: Enseña a alguien",
+    "Día 27: Revisa todo el progreso",
+    "Día 28: Optimiza tu método",
+    "Día 29: Estudia con máxima concentración",
+    "Día 30: Reflexión final + nuevos objetivos",
+  ];
 
   const [user, setUser] = useState(null);
-  const [isRegistering, setIsRegistering] = useState(false);
-
-  const [name, setName] = useState("");
-  const [studentName, setStudentName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const [completedDays, setCompletedDays] = useState([]);
   const [ranking, setRanking] = useState([]);
@@ -86,52 +89,44 @@ const challenges = [
 
     if (seconds === 0) {
       setRunning(false);
-      alert("¡Pomodoro terminado! Toma un descanso ☕");
+      alert("¡Pomodoro terminado! ☕");
     }
 
     return () => clearInterval(timer);
   }, [running, seconds]);
 
   const register = async () => {
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      alert("Debes ingresar nombre, correo y contraseña");
-      return;
-    }
-
-    if (password.length < 6) {
-      alert("La contraseña debe tener mínimo 6 caracteres");
+    if (!email || !password || !name) {
+      alert("Completa todos los campos");
       return;
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const res = await createUserWithEmailAndPassword(auth, email, password);
 
-      await setDoc(doc(db, "students", userCredential.user.uid), {
-        name: name.trim(),
-        email: email.trim(),
+      await setDoc(doc(db, "students", res.user.uid), {
+        name: name,
+        email: email,
         completedDays: [],
         progress: 0,
       });
 
-      setStudentName(name.trim());
-      alert("Cuenta creada correctamente");
+      alert("Cuenta creada");
+      setIsRegistering(false);
     } catch (error) {
       alert(error.message);
     }
   };
 
   const login = async () => {
-    if (!email.trim() || !password.trim()) {
-      alert("Debes ingresar correo y contraseña");
+    if (!email || !password) {
+      alert("Completa los campos");
       return;
     }
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      alert("Bienvenido");
     } catch (error) {
       alert(error.message);
     }
@@ -139,65 +134,53 @@ const challenges = [
 
   const logout = async () => {
     await signOut(auth);
-    setStudentName("");
-    setCompletedDays([]);
-    setEmail("");
-    setPassword("");
-    setName("");
-    setIsRegistering(false);
   };
 
   const loadProgress = async (uid) => {
-    const userRef = doc(db, "students", uid);
-    const userSnap = await getDoc(userRef);
+    const ref = doc(db, "students", uid);
+    const snap = await getDoc(ref);
 
-    if (userSnap.exists()) {
-      const data = userSnap.data();
-
-      setCompletedDays(data.completedDays || []);
-      setStudentName(data.name || data.email || "");
-    } else {
-      setCompletedDays([]);
-      setStudentName("");
+    if (snap.exists()) {
+      setCompletedDays(snap.data().completedDays || []);
     }
   };
 
-  const saveProgress = async (newCompletedDays) => {
+  const saveProgress = async (newDays) => {
     if (!user) return;
 
-    await setDoc(
-      doc(db, "students", user.uid),
-      {
-        name: studentName || user.email,
-        email: user.email,
-        completedDays: newCompletedDays,
-        progress: newCompletedDays.length,
-      },
-      { merge: true }
-    );
+    const ref = doc(db, "students", user.uid);
+    const snap = await getDoc(ref);
+
+    const data = snap.data();
+
+    await setDoc(ref, {
+      ...data,
+      completedDays: newDays,
+      progress: newDays.length,
+    });
 
     await loadRanking();
   };
 
   const loadRanking = async () => {
-    const querySnapshot = await getDocs(collection(db, "students"));
-    const list = querySnapshot.docs.map((doc) => doc.data());
+    const snapshot = await getDocs(collection(db, "students"));
+    const list = snapshot.docs.map((doc) => doc.data());
 
-    const sorted = list.sort((a, b) => (b.progress || 0) - (a.progress || 0));
+    const sorted = list.sort((a, b) => b.progress - a.progress);
     setRanking(sorted);
   };
 
   const toggleChallenge = async (index) => {
-    let updatedDays;
+    let updated;
 
     if (completedDays.includes(index)) {
-      updatedDays = completedDays.filter((day) => day !== index);
+      updated = completedDays.filter((d) => d !== index);
     } else {
-      updatedDays = [...completedDays, index];
+      updated = [...completedDays, index];
     }
 
-    setCompletedDays(updatedDays);
-    await saveProgress(updatedDays);
+    setCompletedDays(updated);
+    await saveProgress(updated);
   };
 
   const minutes = Math.floor(seconds / 60);
@@ -209,8 +192,6 @@ const challenges = [
         <div className="login-box">
           <img src={logo} alt="logo" className="logo" />
           <h1>DailyStudyBoost</h1>
-
-          <p>{isRegistering ? "Crea tu cuenta" : "Inicia sesión"}</p>
 
           {isRegistering && (
             <input
@@ -224,26 +205,30 @@ const challenges = [
           <input
             type="email"
             placeholder="Correo"
-            value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
 
           <input
             type="password"
             placeholder="Contraseña"
-            value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
 
           {isRegistering ? (
-            <button onClick={register}>Crear cuenta</button>
+            <>
+              <button onClick={register}>Crear cuenta</button>
+              <button onClick={() => setIsRegistering(false)}>
+                Ya tengo cuenta
+              </button>
+            </>
           ) : (
-            <button onClick={login}>Iniciar sesión</button>
+            <>
+              <button onClick={login}>Iniciar sesión</button>
+              <button onClick={() => setIsRegistering(true)}>
+                Registrarse
+              </button>
+            </>
           )}
-
-          <button onClick={() => setIsRegistering(!isRegistering)}>
-            {isRegistering ? "Ya tengo cuenta" : "No tengo cuenta, registrarme"}
-          </button>
         </div>
       </div>
     );
@@ -254,13 +239,13 @@ const challenges = [
       <header className="header">
         <img src={logo} alt="logo" className="logo" />
         <h1>DailyStudyBoost</h1>
-        <p>{studentName || user.email}</p>
+        <p>{user.email}</p>
         <button onClick={logout}>Cerrar sesión</button>
       </header>
 
       <section className="summary">
-        <h2>Progreso del desafío</h2>
-        <p>✅ Completado: {completedDays.length}/30 días</p>
+        <h2>Progreso</h2>
+        <p>{completedDays.length}/30 días</p>
       </section>
 
       <section className="pomodoro">
@@ -285,45 +270,48 @@ const challenges = [
 
       <section className="tasks">
         <h2>Desafío 30 días</h2>
-
         <ul>
-          {challenges.map((challenge, index) => (
+          {challenges.map((c, i) => (
             <li
-              key={index}
-              onClick={() => toggleChallenge(index)}
-              className={completedDays.includes(index) ? "done" : ""}
+              key={i}
+              onClick={() => toggleChallenge(i)}
+              className={completedDays.includes(i) ? "done" : ""}
             >
-              {challenge}
+              {c}
             </li>
           ))}
         </ul>
       </section>
 
-     <section className="ranking">
-  <h2>🏆 Ranking de estudiantes</h2>
+      <section className="ranking">
+        <h2>Ranking</h2>
 
-  <div className="ranking-list">
-    {ranking.map((student, index) => {
-      const medals = ["🥇", "🥈", "🥉"];
+        <div className="ranking-list">
+          {ranking.map((student, index) => {
+            const medals = ["🥇", "🥈", "🥉"];
 
-      return (
-        <div className="ranking-card" key={index}>
-          <div className="rank-position">
-            {medals[index] || #${index + 1}}
-          </div>
+            return (
+              <div className="ranking-card" key={index}>
+                <div className="rank-position">
+                  {medals[index] || "#" + (index + 1)}
+                </div>
 
-          <div className="rank-info">
-            <p className="rank-name">
-              {student.name || student.email}
-            </p>
-            <p className="rank-progress">
-              {student.progress || 0} días completados
-            </p>
-          </div>
+                <div className="rank-info">
+                  <p className="rank-name">
+                    {student.name || student.email}
+                  </p>
+                  <p className="rank-progress">
+                    {student.progress || 0} días completados
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      );
-    })}
-  </div>
-</section>
+      </section>
+    </div>
+  );
+}
 
 export default App;
+
