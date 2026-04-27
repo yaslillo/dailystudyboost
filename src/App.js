@@ -93,7 +93,18 @@ function App() {
     return () => clearInterval(timer);
   }, [running, seconds]);
 
+  // ✅ REGISTER CORREGIDO
   const register = async () => {
+    if (!email.trim() || !password.trim()) {
+      alert("Debes ingresar correo y contraseña");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("La contraseña debe tener mínimo 6 caracteres");
+      return;
+    }
+
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       alert("Cuenta creada correctamente");
@@ -102,7 +113,13 @@ function App() {
     }
   };
 
+  // ✅ LOGIN CORREGIDO
   const login = async () => {
+    if (!email.trim() || !password.trim()) {
+      alert("Debes ingresar correo y contraseña");
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
       alert("Sesión iniciada");
