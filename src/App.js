@@ -61,21 +61,23 @@ function App() {
   const [seconds, setSeconds] = useState(25 * 60);
   const [running, setRunning] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    setUser(currentUser);
 
-      if (currentUser) {
-        await loadProgress(currentUser.uid);
-        await loadRanking();
-      } else {
-        setCompletedDays([]);
-        setStudentName("");
-      }
-    });
+    if (currentUser) {
+      await loadProgress(currentUser.uid);
+      await loadRanking();
+    } else {
+      setCompletedDays([]);
+      setStudentName("");
+    }
+  });
 
-    return () => unsubscribe();
-  }, [loadProgress, loadRanking]);
+  return () => unsubscribe();
+
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
   useEffect(() => {
     let timer;
