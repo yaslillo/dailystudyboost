@@ -182,3 +182,7 @@ body {
   border-radius: 12px;
   font-weight: bold;
 }
+
+.tasks li {
+  white-space: pre-line;
+}
