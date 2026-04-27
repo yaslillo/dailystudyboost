@@ -85,16 +85,20 @@ function App() {
 
     if (seconds === 0) {
       setRunning(false);
-      alert("¡Pomodoro terminado! ☕");
+      alert("¡Pomodoro terminado! Toma un descanso ☕");
     }
 
     return () => clearInterval(timer);
   }, [running, seconds]);
 
-  // 🔐 REGISTRO
   const register = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) {
       alert("Debes ingresar nombre, correo y contraseña");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("La contraseña debe tener mínimo 6 caracteres");
       return;
     }
 
@@ -112,14 +116,13 @@ function App() {
         progress: 0,
       });
 
-      alert("Cuenta creada");
-      setIsRegistering(false);
+      setStudentName(name.trim());
+      alert("Cuenta creada correctamente");
     } catch (error) {
       alert(error.message);
     }
   };
 
-  // 🔐 LOGIN
   const login = async () => {
     if (!email.trim() || !password.trim()) {
       alert("Debes ingresar correo y contraseña");
@@ -136,6 +139,11 @@ function App() {
   const logout = async () => {
     await signOut(auth);
     setStudentName("");
+    setCompletedDays([]);
+    setEmail("");
+    setPassword("");
+    setName("");
+    setIsRegistering(false);
   };
 
   const loadProgress = async (uid) => {
@@ -144,8 +152,12 @@ function App() {
 
     if (userSnap.exists()) {
       const data = userSnap.data();
+
       setCompletedDays(data.completedDays || []);
-      setStudentName(data.name || data.email);
+      setStudentName(data.name || data.email || "");
+    } else {
+      setCompletedDays([]);
+      setStudentName("");
     }
   };
 
@@ -170,7 +182,7 @@ function App() {
     const querySnapshot = await getDocs(collection(db, "students"));
     const list = querySnapshot.docs.map((doc) => doc.data());
 
-    const sorted = list.sort((a, b) => b.progress - a.progress);
+    const sorted = list.sort((a, b) => (b.progress || 0) - (a.progress || 0));
     setRanking(sorted);
   };
 
@@ -190,7 +202,6 @@ function App() {
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
 
-  // 🟡 LOGIN UI
   if (!user) {
     return (
       <div className="app">
@@ -198,7 +209,7 @@ function App() {
           <img src={logo} alt="logo" className="logo" />
           <h1>DailyStudyBoost</h1>
 
-          <p>{isRegistering ? "Crear cuenta" : "Iniciar sesión"}</p>
+          <p>{isRegistering ? "Crea tu cuenta" : "Inicia sesión"}</p>
 
           {isRegistering && (
             <input
@@ -230,38 +241,37 @@ function App() {
           )}
 
           <button onClick={() => setIsRegistering(!isRegistering)}>
-            {isRegistering
-              ? "Ya tengo cuenta"
-              : "No tengo cuenta, registrarme"}
+            {isRegistering ? "Ya tengo cuenta" : "No tengo cuenta, registrarme"}
           </button>
         </div>
       </div>
     );
   }
 
-  // 🟢 APP
   return (
     <div className="app">
       <header className="header">
         <img src={logo} alt="logo" className="logo" />
         <h1>DailyStudyBoost</h1>
-        <p>{studentName}</p>
+        <p>{studentName || user.email}</p>
         <button onClick={logout}>Cerrar sesión</button>
       </header>
 
       <section className="summary">
-        <h2>Progreso</h2>
-        <p>{completedDays.length}/30 días</p>
+        <h2>Progreso del desafío</h2>
+        <p>✅ Completado: {completedDays.length}/30 días</p>
       </section>
 
       <section className="pomodoro">
         <h2>Pomodoro</h2>
-        <p>
+        <p className="timer">
           {minutes}:{secs.toString().padStart(2, "0")}
         </p>
+
         <button onClick={() => setRunning(!running)}>
           {running ? "Pausar" : "Iniciar"}
         </button>
+
         <button
           onClick={() => {
             setRunning(false);
@@ -273,26 +283,28 @@ function App() {
       </section>
 
       <section className="tasks">
-        <h2>Desafío</h2>
+        <h2>Desafío 30 días</h2>
+
         <ul>
-          {challenges.map((c, i) => (
+          {challenges.map((challenge, index) => (
             <li
-              key={i}
-              onClick={() => toggleChallenge(i)}
-              className={completedDays.includes(i) ? "done" : ""}
+              key={index}
+              onClick={() => toggleChallenge(index)}
+              className={completedDays.includes(index) ? "done" : ""}
             >
-              {c}
+              {challenge}
             </li>
           ))}
         </ul>
       </section>
 
       <section className="ranking">
-        <h2>Ranking</h2>
+        <h2>Ranking de estudiantes</h2>
+
         <ol>
-          {ranking.map((s, i) => (
-            <li key={i}>
-              {s.name || s.email} — {s.progress} días
+          {ranking.map((student, index) => (
+            <li key={index}>
+              {student.name || student.email} — {student.progress || 0} días
             </li>
           ))}
         </ol>
