@@ -98,57 +98,58 @@ function App() {
   }, [running, seconds]);
 
   const register = async () => {
-  if (!name.trim() || !email.trim() || !password.trim()) {
-    alert("Debes ingresar nombre, correo y contraseña");
-    return;
-  }
-
-  if (password.length < 6) {
-    alert("La contraseña debe tener mínimo 6 caracteres");
-    return;
-  }
-
-  try {
-    const res = await createUserWithEmailAndPassword(
-      auth,
-      email.trim(),
-      password
-    );
-
-    await setDoc(doc(db, "users", res.user.uid), {
-      name: name.trim(),
-      email: email.trim(),
-      completedDays: [],
-      progress: 0,
-    });
-
-    alert("Cuenta creada correctamente");
-  } catch (error) {
-    if (error.code === "auth/email-already-in-use") {
-      alert("Ese correo ya está registrado. Inicia sesión.");
-    } else {
-      alert("No se pudo crear la cuenta.");
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      alert("Debes ingresar nombre, correo y contraseña");
+      return;
     }
-  }
-};
 
-const login = async () => {
-  if (!email.trim() || !password.trim()) {
-    alert("Debes ingresar correo y contraseña");
-    return;
-  }
+    if (password.length < 6) {
+      alert("La contraseña debe tener mínimo 6 caracteres");
+      return;
+    }
 
-  try {
-    await signInWithEmailAndPassword(auth, email.trim(), password);
-  } catch (error) {
-    alert("Correo o contraseña incorrectos.");
-  }
-};
+    try {
+      const res = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
 
-const logout = async () => {
-  await signOut(auth);
-};
+      await setDoc(doc(db, "users", res.user.uid), {
+        name: name.trim(),
+        email: email.trim(),
+        completedDays: [],
+        progress: 0,
+      });
 
+      setStudentName(name.trim());
+      setIsRegistering(false);
+      alert("Cuenta creada correctamente");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const login = async () => {
+    if (!email.trim() || !password.trim()) {
+      alert("Debes ingresar correo y contraseña");
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+    } catch (error) {
+      alert("Correo o contraseña incorrectos.");
+    }
+  };
+
+  const logout = async () => {
+    await signOut(auth);
+    setEmail("");
+    setPassword("");
+    setName("");
+    setIsRegistering(false);
+  };
 
   const loadProgress = async (uid) => {
     const ref = doc(db, "users", uid);
@@ -261,7 +262,7 @@ const logout = async () => {
           ) : (
             <>
               <button onClick={login}>Iniciar sesión</button>
-              <button onClick={() => setIsRegistering(true)}>Registrarse</button>
+              <button onClick={() => setIsRegistering(true}>Registrarse</button>
             </>
           )}
         </div>
@@ -274,7 +275,7 @@ const logout = async () => {
       <header className="header">
         <img src={logo} alt="logo" className="logo" />
         <h1>DailyStudyBoost</h1>
-        <p>{studentName || user.email}</p>
+        <p>Hola, {studentName || user.email} 👋</p>
         <button onClick={logout}>Cerrar sesión</button>
       </header>
 
@@ -303,49 +304,54 @@ const logout = async () => {
         </button>
       </section>
 
-      <section className="tasks">
-        <h2>Desafío 30 días</h2>
+      <div className="grid">
+        <section className="tasks">
+          <h2>Desafío 30 días</h2>
 
-        <ul>
-          {challenges.map((challenge, index) => (
-            <li
-              key={index}
-              onClick={() => toggleChallenge(index)}
-              className={completedDays.includes(index) ? "done" : ""}
-            >
-              {challenge}
-            </li>
-          ))}
-        </ul>
-      </section>
+          <ul>
+            {challenges.map((challenge, index) => (
+              <li
+                key={index}
+                onClick={() => toggleChallenge(index)}
+                className={completedDays.includes(index) ? "done" : ""}
+              >
+                {challenge}
+              </li>
+            ))}
+          </ul>
+        </section>
 
-      <section className="ranking">
-        <h2>🏆 Ranking</h2>
+        <section className="ranking">
+          <h2>🏆 Ranking</h2>
 
-        <div className="ranking-list">
-          {ranking.map((student, index) => {
-            const medals = ["🥇", "🥈", "🥉"];
+          <div className="ranking-list">
+            {ranking.map((student, index) => {
+              const medals = ["🥇", "🥈", "🥉"];
 
-            return (
-              <div className="ranking-card" key={index}>
-                <div className="rank-position">
-                  {medals[index] || "#" + (index + 1)}
+              return (
+                <div className="ranking-card" key={index}>
+                  <div className="rank-position">
+                    {medals[index] || "#" + (index + 1)}
+                  </div>
+
+                  <div className="rank-info">
+                    <p className="rank-name">
+                      {student.name || student.email}
+                    </p>
+                    <p className="rank-progress">
+                      {student.progress || 0} días completados
+                    </p>
+                  </div>
                 </div>
-
-                <div className="rank-info">
-                  <p className="rank-name">{student.name || student.email}</p>
-                  <p className="rank-progress">
-                    {student.progress || 0} días completados
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
+              );
+            })}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
 
 export default App;
 
+      
