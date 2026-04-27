@@ -187,3 +187,50 @@ body {
 .tasks li {
   white-space: pre-line;
 }
+
+.tasks {
+  background: white;
+  padding: 25px;
+  margin: 25px auto;
+  max-width: 900px;
+  border-radius: 24px;
+  box-shadow: 0 10px 25px rgba(0, 80, 160, 0.12);
+}
+
+.tasks h2 {
+  text-align: center;
+  color: #0b3c6d;
+  font-size: 32px;
+  margin-bottom: 25px;
+}
+
+.tasks ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tasks li {
+  white-space: pre-line;
+  background: #eef8ff;
+  margin-bottom: 14px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border-left: 6px solid #00aaff;
+  font-size: 17px;
+  line-height: 1.45;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.tasks li:hover {
+  transform: translateY(-2px);
+  background: #dff3ff;
+}
+
+.tasks li.done {
+  background: #d7ffe5;
+  border-left-color: #18b45b;
+  text-decoration: line-through;
+  color: #2d6a4f;
+}
