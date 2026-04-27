@@ -20,8 +20,13 @@ body {
 /* LOGO */
 .logo {
   width: 100px;
+  height: 100px;
+  object-fit: cover;
   display: block;
   margin: 0 auto 10px;
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 8px 20px rgba(0, 80, 160, 0.18);
 }
 
 /* HEADER */
@@ -161,17 +166,15 @@ button:hover {
   font-size: 14px;
 }
 
-/* ------------------------ */
-/* 📱 MOBILE FIRST */
-/* ------------------------ */
+/* MOBILE */
 @media (max-width: 768px) {
-
   .app {
     padding: 12px;
   }
 
   .logo {
     width: 80px;
+    height: 80px;
   }
 
   .header {
@@ -197,51 +200,14 @@ button:hover {
   }
 }
 
-/* ------------------------ */
-/* 💻 DESKTOP MEJORADO */
-/* ------------------------ */
+/* DESKTOP */
 @media (min-width: 769px) {
-
   .grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 24px;
+    align-items: start;
   }
-
-}
-
-.progress-bar {
-  width: 100%;
-  height: 20px;
-  background: #e0f2ff;
-  border-radius: 20px;
-  overflow: hidden;
-  margin: 15px 0;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #00bfff, #1f7acf);
-  transition: width 0.4s ease;
-}
-
-.gold {
-  background: linear-gradient(135deg, #fff7cc, #ffe066);
-}
-
-.silver {
-  background: linear-gradient(135deg, #f1f1f1, #d9d9d9);
-}
-
-.bronze {
-  background: linear-gradient(135deg, #f5d0a9, #d99058);
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 24px;
-  align-items: start;
 }
 
 .tasks ul {
@@ -279,6 +245,36 @@ button:hover {
   }
 }
 
+/* PROGRESS BAR */
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background: #e0f2ff;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 15px 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00bfff, #1f7acf);
+  transition: width 0.4s ease;
+}
+
+/* MEDALS */
+.gold {
+  background: linear-gradient(135deg, #fff7cc, #ffe066);
+}
+
+.silver {
+  background: linear-gradient(135deg, #f1f1f1, #d9d9d9);
+}
+
+.bronze {
+  background: linear-gradient(135deg, #f5d0a9, #d99058);
+}
+
+/* DESCRIPTION */
 .description {
   margin-top: 10px;
   font-size: 14px;
@@ -287,47 +283,63 @@ button:hover {
   text-align: center;
 }
 
+/* ONBOARDING */
 .onboarding {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #0b3c6d, #1f7acf, #00bfff);
+  background: radial-gradient(circle at top, #00bfff, #1f7acf, #0b3c6d);
   color: white;
   text-align: center;
-  padding: 20px;
+  padding: 24px;
 }
 
 .onboarding-logo {
-  width: 120px;
-  margin-bottom: 20px;
+  width: 130px;
+  height: 130px;
+  object-fit: cover;
+  margin-bottom: 22px;
+  border-radius: 50%;
+  border: 5px solid white;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.onboarding h1 {
+  font-size: 34px;
+  margin: 10px 0;
 }
 
 .onboarding-text {
-  max-width: 430px;
-  line-height: 1.5;
+  max-width: 480px;
+  line-height: 1.6;
+  font-size: 17px;
 }
 
 .onboarding-list {
   list-style: none;
   padding: 0;
-  margin: 20px 0;
+  margin: 22px 0;
 }
 
 .onboarding-list li {
-  margin: 10px 0;
+  margin: 12px 0;
   font-weight: bold;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px 18px;
+  border-radius: 999px;
 }
 
 .start-btn {
   background: white;
   color: #1f7acf;
-  padding: 12px 28px;
-  border-radius: 25px;
+  padding: 14px 32px;
+  border-radius: 999px;
   font-weight: bold;
 }
 
+/* LOGROS */
 .achievements {
   background: white;
   padding: 24px;
@@ -336,10 +348,6 @@ button:hover {
   border-radius: 24px;
   text-align: center;
   box-shadow: 0 10px 25px rgba(0, 80, 160, 0.12);
-}
-
-.achievements h2 {
-  color: #0b3c6d;
 }
 
 .achievement-list {
@@ -354,5 +362,4 @@ button:hover {
   padding: 16px;
   border-radius: 18px;
   font-weight: bold;
-  box-shadow: 0 6px 15px rgba(0, 80, 160, 0.12);
 }

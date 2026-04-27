@@ -61,6 +61,7 @@ function App() {
 
   const [seconds, setSeconds] = useState(25 * 60);
   const [running, setRunning] = useState(false);
+  const [pomodoroSessions, setPomodoroSessions] = useState(0);
 
   const [showOnboarding, setShowOnboarding] = useState(
     localStorage.getItem("onboardingSeen") !== "true"
@@ -76,6 +77,7 @@ function App() {
       } else {
         setCompletedDays([]);
         setStudentName("");
+        setPomodoroSessions(0);
       }
     });
 
@@ -93,12 +95,14 @@ function App() {
       }, 1000);
     }
 
-    if (seconds === 0) {
+    if (running && seconds === 0) {
       setRunning(false);
-      alert("¡Pomodoro terminado! ☕");
+      completePomodoro();
     }
 
     return () => clearInterval(timer);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, seconds]);
 
   const register = async () => {
@@ -124,6 +128,7 @@ function App() {
         email: email.trim(),
         completedDays: [],
         progress: 0,
+        pomodoroSessions: 0,
       });
 
       setStudentName(name.trim());
@@ -168,14 +173,15 @@ function App() {
       const data = snap.data();
       setCompletedDays(data.completedDays || []);
       setStudentName(data.name || data.email || "");
+      setPomodoroSessions(data.pomodoroSessions || 0);
     } else {
       setCompletedDays([]);
+      setPomodoroSessions(0);
     }
   };
 
   const saveProgress = async (newDays) => {
     const currentUser = auth.currentUser;
-
     if (!currentUser) return;
 
     const ref = doc(db, "users", currentUser.uid);
@@ -190,12 +196,43 @@ function App() {
         email: currentUser.email,
         completedDays: newDays,
         progress: newDays.length,
+        pomodoroSessions: oldData.pomodoroSessions || pomodoroSessions || 0,
       },
       { merge: true }
     );
 
     await loadProgress(currentUser.uid);
     await loadRanking();
+  };
+
+  const completePomodoro = async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    const newPomodoroSessions = pomodoroSessions + 1;
+    setPomodoroSessions(newPomodoroSessions);
+
+    const ref = doc(db, "users", currentUser.uid);
+    const snap = await getDoc(ref);
+    const oldData = snap.exists() ? snap.data() : {};
+
+    await setDoc(
+      ref,
+      {
+        ...oldData,
+        name: oldData.name || studentName || currentUser.email,
+        email: currentUser.email,
+        completedDays,
+        progress: completedDays.length,
+        pomodoroSessions: newPomodoroSessions,
+      },
+      { merge: true }
+    );
+
+    alert("¡Pomodoro terminado! Logro actualizado ☕🏅");
+
+    setSeconds(25 * 60);
+    await loadProgress(currentUser.uid);
   };
 
   const loadRanking = async () => {
@@ -233,15 +270,15 @@ function App() {
   const secs = seconds % 60;
 
   const achievements = [
-    { days: 1, title: "🎯 Primer paso" },
-    { days: 5, title: "🔥 Constancia" },
-    { days: 10, title: "🚀 En camino" },
-    { days: 20, title: "🏆 Disciplina" },
-    { days: 30, title: "👑 Maestro StudyBoost" },
+    { sessions: 1, title: "🎯 Primer Pomodoro" },
+    { sessions: 3, title: "🔥 Enfoque inicial" },
+    { sessions: 5, title: "🚀 Constancia" },
+    { sessions: 10, title: "🏆 Disciplina" },
+    { sessions: 20, title: "👑 Maestro del enfoque" },
   ];
 
   const unlockedAchievements = achievements.filter(
-    (achievement) => completedDays.length >= achievement.days
+    (achievement) => pomodoroSessions >= achievement.sessions
   );
 
   if (showOnboarding) {
@@ -249,21 +286,22 @@ function App() {
       <div className="onboarding">
         <img src={logo} alt="logo" className="onboarding-logo" />
 
-        <h1>Bienvenido a DailyStudyBoost 🚀</h1>
+        <h1>Bienvenido a DailyStudyBoost 🚀✨</h1>
 
         <p className="onboarding-text">
-          Mejora tu enfoque, vence la procrastinación y construye hábitos de
-          estudio en 30 días.
+          Convierte el estudio en un hábito diario 💪📚. Completa desafíos, usa
+          Pomodoro ⏱️, desbloquea logros 🏅 y sube en el ranking 🏆.
         </p>
 
         <ul className="onboarding-list">
-          <li>✅ Desafíos diarios</li>
-          <li>⏱️ Técnica Pomodoro</li>
-          <li>🏆 Ranking de estudiantes</li>
+          <li>🎯 30 días para vencer la procrastinación</li>
+          <li>⏱️ Pomodoro para estudiar con enfoque</li>
+          <li>🏅 Logros que se desbloquean al cumplir</li>
+          <li>🏆 Ranking para motivarte cada día</li>
         </ul>
 
         <button onClick={finishOnboarding} className="start-btn">
-          Empezar
+          Empezar ahora 🚀
         </button>
       </div>
     );
@@ -347,13 +385,17 @@ function App() {
         </div>
 
         <p>{completedDays.length}/30 días completados</p>
+        <p>⏱️ Pomodoros completados: {pomodoroSessions}</p>
       </section>
 
       <section className="achievements">
         <h2>Logros desbloqueados</h2>
 
         {unlockedAchievements.length === 0 ? (
-          <p>Aún no tienes logros. Completa tu primer día para desbloquear uno 🎯</p>
+          <p>
+            Aún no tienes logros. Completa un Pomodoro para desbloquear el
+            primero 🎯
+          </p>
         ) : (
           <div className="achievement-list">
             {unlockedAchievements.map((achievement, index) => (
