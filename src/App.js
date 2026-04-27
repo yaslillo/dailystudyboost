@@ -98,59 +98,52 @@ function App() {
   }, [running, seconds]);
 
   const register = async () => {
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      alert("Debes ingresar nombre, correo y contraseña");
-      return;
+  if (!name.trim() || !email.trim() || !password.trim()) {
+    alert("Debes ingresar nombre, correo y contraseña");
+    return;
+  }
+
+  if (password.length < 6) {
+    alert("La contraseña debe tener mínimo 6 caracteres");
+    return;
+  }
+
+  try {
+    const res = await createUserWithEmailAndPassword(
+      auth,
+      email.trim(),
+      password
+    );
+
+    await setDoc(doc(db, "users", res.user.uid), {
+      name: name.trim(),
+      email: email.trim(),
+      completedDays: [],
+      progress: 0,
+    });
+
+    alert("Cuenta creada correctamente");
+  } catch (error) {
+    if (error.code === "auth/email-already-in-use") {
+      alert("Ese correo ya está registrado. Inicia sesión.");
+    } else {
+      alert("No se pudo crear la cuenta.");
     }
+  }
+};
 
-    if (password.length < 6) {
-      alert("La contraseña debe tener mínimo 6 caracteres");
-      return;
-    }
+const login = async () => {
+  if (!email.trim() || !password.trim()) {
+    alert("Debes ingresar correo y contraseña");
+    return;
+  }
 
-    try {
-      const res = await createUserWithEmailAndPassword(
-        auth,
-        email.trim(),
-        password
-      );
-
-      await setDoc(doc(db, "users", res.user.uid), {
-        name: name.trim(),
-        email: email.trim(),
-        completedDays: [],
-        progress: 0,
-      });
-
-      setStudentName(name.trim());
-      setIsRegistering(false);
-      alert("Cuenta creada correctamente");
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-
-  const login = async () => {
-    if (!email.trim() || !password.trim()) {
-      alert("Debes ingresar correo y contraseña");
-      return;
-    }
-
-    try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-
-  const logout = async () => {
-    await signOut(auth);
-    setEmail("");
-    setPassword("");
-    setName("");
-    setIsRegistering(false);
-  };
-
+  try {
+    await signInWithEmailAndPassword(auth, email.trim(), password);
+  } catch (error) {
+    alert("Correo o contraseña incorrectos.");
+  }
+};
   const loadProgress = async (uid) => {
     const ref = doc(db, "users", uid);
     const snap = await getDoc(ref);
