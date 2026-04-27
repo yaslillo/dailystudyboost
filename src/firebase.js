@@ -2,16 +2,19 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
+// Configuración de Firebase (tu proyecto)
 const firebaseConfig = {
-  apiKey: "AQUI_TU_API_KEY",
-  authDomain: "AQUI_TU_DOMAIN",
-  projectId: "AQUI_TU_PROJECT_ID",
-  storageBucket: "AQUI_TU_BUCKET",
-  messagingSenderId: "AQUI_TU_ID",
-  appId: "AQUI_TU_APP_ID"
+  apiKey: "AIzaSyDWkHadPAcC4ofx0Ef2kmifiHjkPm_nhg",
+  authDomain: "dailystudyboost-f5160.firebaseapp.com",
+  projectId: "dailystudyboost-f5160",
+  storageBucket: "dailystudyboost-f5160.firebasestorage.app",
+  messagingSenderId: "848138886017",
+  appId: "1:848138886017:web:abcc95f3cfca3b48262680"
 };
 
+// Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 
+// Exportar servicios
 export const auth = getAuth(app);
 export const db = getFirestore(app);
