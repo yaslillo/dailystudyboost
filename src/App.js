@@ -11,13 +11,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 
-import {
-  doc,
-  setDoc,
-  getDoc,
-  collection,
-  getDocs,
-} from "firebase/firestore";
+import { doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
 
 function App() {
   const challenges = [
@@ -54,6 +48,8 @@ function App() {
   ];
 
   const [user, setUser] = useState(null);
+  const [name, setName] = useState("");
+  const [studentName, setStudentName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -93,10 +89,9 @@ function App() {
     return () => clearInterval(timer);
   }, [running, seconds]);
 
-  // ✅ REGISTER CORREGIDO
   const register = async () => {
-    if (!email.trim() || !password.trim()) {
-      alert("Debes ingresar correo y contraseña");
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      alert("Debes ingresar nombre, correo y contraseña");
       return;
     }
 
@@ -106,14 +101,26 @@ function App() {
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      await setDoc(doc(db, "students", userCredential.user.uid), {
+        name: name.trim(),
+        email: email.trim(),
+        completedDays: [],
+        progress: 0,
+      });
+
+      setStudentName(name.trim());
       alert("Cuenta creada correctamente");
     } catch (error) {
       alert(error.message);
     }
   };
 
-  // ✅ LOGIN CORREGIDO
   const login = async () => {
     if (!email.trim() || !password.trim()) {
       alert("Debes ingresar correo y contraseña");
@@ -130,6 +137,8 @@ function App() {
 
   const logout = async () => {
     await signOut(auth);
+    setStudentName("");
+    setCompletedDays([]);
   };
 
   const loadProgress = async (uid) => {
@@ -138,19 +147,26 @@ function App() {
 
     if (userSnap.exists()) {
       setCompletedDays(userSnap.data().completedDays || []);
+      setStudentName(userSnap.data().name || userSnap.data().email || "");
     } else {
       setCompletedDays([]);
+      setStudentName("");
     }
   };
 
   const saveProgress = async (newCompletedDays) => {
     if (!user) return;
 
-    await setDoc(doc(db, "students", user.uid), {
-      email: user.email,
-      completedDays: newCompletedDays,
-      progress: newCompletedDays.length,
-    });
+    await setDoc(
+      doc(db, "students", user.uid),
+      {
+        name: studentName || user.email,
+        email: user.email,
+        completedDays: newCompletedDays,
+        progress: newCompletedDays.length,
+      },
+      { merge: true }
+    );
 
     await loadRanking();
   };
@@ -159,7 +175,7 @@ function App() {
     const querySnapshot = await getDocs(collection(db, "students"));
     const list = querySnapshot.docs.map((doc) => doc.data());
 
-    const sorted = list.sort((a, b) => b.progress - a.progress);
+    const sorted = list.sort((a, b) => (b.progress || 0) - (a.progress || 0));
     setRanking(sorted);
   };
 
@@ -188,14 +204,23 @@ function App() {
           <p>Inicia sesión o crea tu cuenta</p>
 
           <input
+            type="text"
+            placeholder="Nombre (solo para registrarte)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+
+          <input
             type="email"
             placeholder="Correo"
+            value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
 
           <input
             type="password"
             placeholder="Contraseña"
+            value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
 
@@ -211,7 +236,7 @@ function App() {
       <header className="header">
         <img src={logo} alt="logo" className="logo" />
         <h1>DailyStudyBoost</h1>
-        <p>{user.email}</p>
+        <p>{studentName || user.email}</p>
         <button onClick={logout}>Cerrar sesión</button>
       </header>
 
@@ -262,7 +287,7 @@ function App() {
         <ol>
           {ranking.map((student, index) => (
             <li key={index}>
-              {student.email} — {student.progress} días
+              {student.name || student.email} — {student.progress || 0} días
             </li>
           ))}
         </ol>
