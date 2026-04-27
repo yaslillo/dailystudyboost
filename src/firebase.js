@@ -6,9 +6,9 @@ const firebaseConfig = {
   apiKey: "AIzaSyDdwKHadpACC4oXoEF2kmifHjKpM_nhg",
   authDomain: "dailystudyboost-f5160.firebaseapp.com",
   projectId: "dailystudyboost-f5160",
-  storageBucket: "dailystudyboost-f5160.appspot.com",
+  storageBucket: "dailystudyboost-f5160.firebasestorage.app",
   messagingSenderId: "848138886017",
-  appId: "1:848138886017:web:abc..."
+  appId: "1:848138886017:web:abcc95f3cfca3b48262680"
 };
 
 const app = initializeApp(firebaseConfig);
