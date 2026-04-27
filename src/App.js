@@ -141,18 +141,28 @@ function App() {
     setCompletedDays([]);
   };
 
-  const loadProgress = async (uid) => {
-    const userRef = doc(db, "students", uid);
-    const userSnap = await getDoc(userRef);
+ const loadProgress = async (uid) => {
+  const userRef = doc(db, "students", uid);
+  const userSnap = await getDoc(userRef);
 
-    if (userSnap.exists()) {
-      setCompletedDays(userSnap.data().completedDays || []);
-      setStudentName(userSnap.data().name || userSnap.data().email || "");
-    } else {
-      setCompletedDays([]);
-      setStudentName("");
+  if (userSnap.exists()) {
+    const data = userSnap.data();
+
+    setCompletedDays(data.completedDays || []);
+    setStudentName(data.name || data.email || "");
+
+    // 🔥 si no tiene nombre, lo actualiza
+    if (!data.name) {
+      await setDoc(
+        doc(db, "students", uid),
+        { name: name || data.email },
+        { merge: true }
+      );
     }
-  };
+  } else {
+    setCompletedDays([]);
+  }
+};
 
   const saveProgress = async (newCompletedDays) => {
     if (!user) return;
