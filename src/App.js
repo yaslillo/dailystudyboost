@@ -14,17 +14,17 @@ import {
 import { doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
 
 function App() {
- const challenges = [
+const challenges = [
   "Día 1: Define tu meta principal",
   "Día 2: Estudia 15 minutos sin distracciones",
   "Día 3: Organiza tu espacio de estudio",
-  "Día 4: Usa la técnica Pomodoro\n25 min de estudio + 5 min de descanso. Repite 4 veces y luego toma un descanso más largo.",
+  "Día 4: Usa la técnica Pomodoro\n25 min de estudio + 5 min de descanso\nRepite 4 veces y luego toma un descanso más largo",
   "Día 5: Elimina 1 distracción importante",
   "Día 6: Haz un resumen de lo aprendido",
   "Día 7: Evalúa tu semana",
   "Día 8: Prueba mapas mentales",
   "Día 9: Estudia enseñando",
-  "Día 10: Técnica Feynman\nExplica el tema con palabras simples, como si se lo enseñaras a un niño. Si no puedes, vuelve a estudiar.",
+  "Día 10: Técnica Feynman\nExplica el tema con palabras simples\nComo si se lo enseñaras a un niño. Si no puedes, vuelve a estudiar",
   "Día 11: Haz preguntas sobre el tema",
   "Día 12: Practica con ejercicios",
   "Día 13: Repaso activo",
@@ -46,6 +46,7 @@ function App() {
   "Día 29: Estudia con máxima concentración",
   "Día 30: Reflexión final + nuevos objetivos",
 ];
+
 
   const [user, setUser] = useState(null);
   const [isRegistering, setIsRegistering] = useState(false);
