@@ -75,7 +75,7 @@ function App() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [loadProgress, loadRanking]);
 
   useEffect(() => {
     let timer;
