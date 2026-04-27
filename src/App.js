@@ -8,50 +8,21 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
+  onAuthStateChanged
 } from "firebase/auth";
 
-import { doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  getDocs
+} from "firebase/firestore";
 
 function App() {
- const challenges = [
-  "Día 1: Define tu meta principal",
-  "Día 2: Estudia 15 minutos sin distracciones",
-  "Día 3: Organiza tu espacio de estudio",
-  "Día 4: Usa la técnica Pomodoro (25 min estudio + 5 min descanso. Repite 4 veces y luego toma un descanso largo)",
-  "Día 5: Elimina 1 distracción importante",
-  "Día 6: Haz un resumen de lo aprendido",
-  "Día 7: Evalúa tu semana",
-  "Día 8: Prueba mapas mentales",
-  "Día 9: Estudia enseñando",
-  "Día 10: Técnica Feynman (Explica el tema con palabras simples como si enseñaras a un niño. Si no puedes, vuelve a estudiar)",
-  "Día 11: Haz preguntas sobre el tema",
-  "Día 12: Practica con ejercicios",
-  "Día 13: Repaso activo",
-  "Día 14: Test rápido",
-  "Día 15: Estudia aunque no tengas motivación",
-  "Día 16: Bloquea redes sociales",
-  "Día 17: Haz 2 sesiones Pomodoro",
-  "Día 18: Estudia a la misma hora",
-  "Día 19: Identifica tu mejor horario",
-  "Día 20: Estudia un tema difícil primero",
-  "Día 21: Recompénsate por cumplir",
-  "Día 22: Planifica tu semana completa",
-  "Día 23: Estudio profundo 45 min",
-  "Día 24: Simula una prueba",
-  "Día 25: Corrige errores",
-  "Día 26: Enseña a alguien",
-  "Día 27: Revisa todo el progreso",
-  "Día 28: Optimiza tu método",
-  "Día 29: Estudia con máxima concentración",
-  "Día 30: Reflexión final + nuevos objetivos",
-];
   const [user, setUser] = useState(null);
-  const [studentName, setStudentName] = useState("");
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [name, setName] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
 
@@ -61,24 +32,23 @@ function App() {
   const [seconds, setSeconds] = useState(25 * 60);
   const [running, setRunning] = useState(false);
 
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-    setUser(currentUser);
+  // 🔥 Cargar usuario + datos
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
 
-    if (currentUser) {
-      await loadProgress(currentUser.uid);
-      await loadRanking();
-    } else {
-      setCompletedDays([]);
-      setStudentName("");
-    }
-  });
+      if (currentUser) {
+        await loadProgress(currentUser.uid);
+        await loadRanking();
+      } else {
+        setCompletedDays([]);
+      }
+    });
 
-  return () => unsubscribe();
+    return () => unsubscribe();
+  }, []);
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
-
+  // ⏱ Pomodoro
   useEffect(() => {
     let timer;
 
@@ -88,152 +58,121 @@ useEffect(() => {
       }, 1000);
     }
 
-    if (seconds === 0) {
-      setRunning(false);
-      alert("¡Pomodoro terminado! ☕");
-    }
-
     return () => clearInterval(timer);
   }, [running, seconds]);
 
+  // 🔐 Auth
   const register = async () => {
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      alert("Debes ingresar nombre, correo y contraseña");
-      return;
-    }
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-    if (password.length < 6) {
-      alert("La contraseña debe tener mínimo 6 caracteres");
-      return;
-    }
-
-    try {
-      const res = await createUserWithEmailAndPassword(
-        auth,
-        email.trim(),
-        password
-      );
-
-      await setDoc(doc(db, "students", res.user.uid), {
-        name: name.trim(),
-        email: email.trim(),
-        completedDays: [],
-        progress: 0,
-      });
-
-      setStudentName(name.trim());
-      setIsRegistering(false);
-      alert("Cuenta creada correctamente");
-    } catch (error) {
-      alert(error.message);
-    }
+    await setDoc(doc(db, "users", userCredential.user.uid), {
+      name,
+      email,
+      progress: 0
+    });
   };
 
   const login = async () => {
-    if (!email.trim() || !password.trim()) {
-      alert("Debes ingresar correo y contraseña");
-      return;
-    }
-
-    try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-    } catch (error) {
-      alert(error.message);
-    }
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
     await signOut(auth);
-    setEmail("");
-    setPassword("");
-    setName("");
-    setIsRegistering(false);
   };
 
-  const loadProgress = async (uid) => {
-  const ref = doc(db, "students", uid);
-  const snap = await getDoc(ref);
+  // 💾 Guardar progreso
+  const saveProgress = async (days) => {
+    if (!user) return;
 
-  if (snap.exists()) {
-    const data = snap.data();
-
-    setCompletedDays(data.completedDays || []);
-    setStudentName(data.name || data.email || "");
-  } else {
-    setCompletedDays([]);
-  }
-};
-
-const saveProgress = async (newDays) => {
-  if (!user) return;
-
-  const ref = doc(db, "students", user.uid);
-  const snap = await getDoc(ref);
-  const oldData = snap.exists() ? snap.data() : {};
-
-  await setDoc(
-    ref,
-    {
-      ...oldData,
-      name: oldData.name || studentName || user.email,
+    await setDoc(doc(db, "users", user.uid), {
+      name: user.displayName || name,
       email: user.email,
-      completedDays: newDays,
-      progress: newDays.length,
-    },
-    { merge: true }
-  );
+      progress: days.length
+    });
+  };
 
-  await loadProgress(user.uid);
-  await loadRanking();
-};
+  // 📥 Cargar progreso
+  const loadProgress = async (uid) => {
+    const docRef = doc(db, "users", uid);
+    const docSnap = await getDoc(docRef);
 
- const loadRanking = async () => {
-  const snapshot = await getDocs(collection(db, "students"));
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const days = Array.from({ length: data.progress || 0 }, (_, i) => i);
+      setCompletedDays(days);
+    }
+  };
 
-  const list = snapshot.docs.map((doc) => {
-    const data = doc.data();
+  // 🏆 Ranking
+  const loadRanking = async () => {
+    const querySnapshot = await getDocs(collection(db, "users"));
 
-    return {
-      ...data,
-      progress: data.completedDays ? data.completedDays.length : data.progress || 0,
-    };
-  });
+    const list = [];
+    querySnapshot.forEach((doc) => {
+      list.push(doc.data());
+    });
 
-  const sorted = list.sort((a, b) => (b.progress || 0) - (a.progress || 0));
-  setRanking(sorted);
-};
+    list.sort((a, b) => (b.progress || 0) - (a.progress || 0));
+    setRanking(list);
+  };
 
-  const sorted = list.sort((a, b) => b.progress - a.progress);
-  setRanking(sorted);
-};
-
-  async function toggleChallenge(index) {
+  // ✅ Completar día
+  const toggleDay = async (index) => {
     let updated;
 
     if (completedDays.includes(index)) {
-      updated = completedDays.filter((d) => d !== index);
+      updated = completedDays.filter((i) => i !== index);
     } else {
       updated = [...completedDays, index];
     }
 
     setCompletedDays(updated);
     await saveProgress(updated);
-  }
+    await loadRanking();
+  };
 
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
+  const challenges = [
+    "Día 1: Define tu meta principal",
+    "Día 2: Estudia 15 minutos sin distracciones",
+    "Día 3: Organiza tu espacio de estudio",
+    "Día 4: Usa la técnica Pomodoro\n25 min estudio + 5 min descanso\nRepite 4 veces y descansa",
+    "Día 5: Elimina 1 distracción importante",
+    "Día 6: Haz un resumen de lo aprendido",
+    "Día 7: Evalúa tu semana",
+    "Día 8: Prueba mapas mentales",
+    "Día 9: Estudia enseñando",
+    "Día 10: Técnica Feynman\nExplica con palabras simples\nSi no puedes, vuelve a estudiar",
+    "Día 11: Haz preguntas",
+    "Día 12: Practica ejercicios",
+    "Día 13: Repaso activo",
+    "Día 14: Test rápido",
+    "Día 15: Estudia sin motivación",
+    "Día 16: Bloquea redes sociales",
+    "Día 17: 2 sesiones Pomodoro",
+    "Día 18: Estudia misma hora",
+    "Día 19: Identifica tu mejor horario",
+    "Día 20: Tema difícil primero",
+    "Día 21: Estudia 30 min seguidos",
+    "Día 22: Resume en voz alta",
+    "Día 23: Explica a alguien",
+    "Día 24: Minimiza distracciones",
+    "Día 25: Estudia con cronómetro",
+    "Día 26: Haz un mini test",
+    "Día 27: Revisa progreso",
+    "Día 28: Mejora técnica",
+    "Día 29: Máxima concentración",
+    "Día 30: Reflexión final"
+  ];
 
-  if (!user) {
-    return (
-      <div className="app">
-        <div className="login-box">
+  return (
+    <div className="app">
+      {!user ? (
+        <div className="login">
           <img src={logo} alt="logo" className="logo" />
           <h1>DailyStudyBoost</h1>
-          <p>{isRegistering ? "Crea tu cuenta" : "Inicia sesión"}</p>
 
           {isRegistering && (
             <input
-              type="text"
               placeholder="Nombre"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -254,98 +193,73 @@ const saveProgress = async (newDays) => {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          {isRegistering ? (
-            <>
-              <button onClick={register}>Crear cuenta</button>
-              <button onClick={() => setIsRegistering(false)}>
-                Ya tengo cuenta
-              </button>
-            </>
-          ) : (
-            <>
-              <button onClick={login}>Iniciar sesión</button>
-              <button onClick={() => setIsRegistering(true)}>Registrarse</button>
-            </>
-          )}
+          <button onClick={login}>Iniciar sesión</button>
+          <button onClick={register}>Registrarse</button>
+
+          <p onClick={() => setIsRegistering(!isRegistering)}>
+            {isRegistering ? "Ya tengo cuenta" : "Crear cuenta"}
+          </p>
         </div>
-      </div>
-    );
-  }
+      ) : (
+        <>
+          <button onClick={logout}>Cerrar sesión</button>
 
-  return (
-    <div className="app">
-      <header className="header">
-        <img src={logo} alt="logo" className="logo" />
-        <h1>DailyStudyBoost</h1>
-        <p>{studentName || user.email}</p>
-        <button onClick={logout}>Cerrar sesión</button>
-      </header>
+          <h2>Progreso</h2>
+          <p>{completedDays.length}/30 días</p>
 
-      <section className="summary">
-        <h2>Progreso</h2>
-        <p>{completedDays.length}/30 días</p>
-      </section>
+          <div className="pomodoro">
+            <h2>Pomodoro</h2>
+            <h1>{Math.floor(seconds / 60)}:{seconds % 60}</h1>
+            <button onClick={() => setRunning(true)}>Iniciar</button>
+            <button onClick={() => setRunning(false)}>Pausar</button>
+          </div>
 
-      <section className="pomodoro">
-        <h2>Pomodoro</h2>
-        <p className="timer">
-          {minutes}:{secs.toString().padStart(2, "0")}
-        </p>
+          <h2>Desafío 30 días</h2>
+          <ul>
+            {challenges.map((challenge, index) => (
+              <li
+                key={index}
+                onClick={() => toggleDay(index)}
+                className={completedDays.includes(index) ? "done" : ""}
+              >
+                {challenge.split("\n").map((line, i) => (
+                  <span key={i}>
+                    {line}
+                    <br />
+                  </span>
+                ))}
+              </li>
+            ))}
+          </ul>
 
-        <button onClick={() => setRunning(!running)}>
-          {running ? "Pausar" : "Iniciar"}
-        </button>
+          <section className="ranking">
+            <h2>🏆 Ranking</h2>
 
-        <button
-          onClick={() => {
-            setRunning(false);
-            setSeconds(25 * 60);
-          }}
-        >
-          Reiniciar
-        </button>
-      </section>
+            <div className="ranking-list">
+              {ranking.map((student, index) => {
+                const medals = ["🥇", "🥈", "🥉"];
 
-      <section className="tasks">
-        <h2>Desafío 30 días</h2>
+                return (
+                  <div className="ranking-card" key={index}>
+                    <div className="rank-position">
+                      {medals[index] || #${index + 1}}
+                    </div>
 
-        <ul>
-          {challenges.map((challenge, index) => (
-            <li
-              key={index}
-              onClick={() => toggleChallenge(index)}
-              className={completedDays.includes(index) ? "done" : ""}
-            >
-              {challenge}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="ranking">
-        <h2>🏆 Ranking</h2>
-
-        <div className="ranking-list">
-          {ranking.map((student, index) => {
-            const medals = ["🥇", "🥈", "🥉"];
-
-            return (
-              <div className="ranking-card" key={index}>
-                <div className="rank-position">
-                  {medals[index] || "#" + (index + 1)}
-                </div>
-
-                <div className="rank-info">
-                  <p className="rank-name">{student.name || student.email}</p>
-                  <p className="rank-progress">
-                    {student.progress || 0} días completados
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
+                    <div className="rank-info">
+                      <p className="rank-name">
+                        {student.name || student.email}
+                      </p>
+                      <p className="rank-progress">
+                        {student.progress || 0} días completados
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }
