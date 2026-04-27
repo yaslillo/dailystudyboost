@@ -11,13 +11,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 
-import {
-  doc,
-  setDoc,
-  getDoc,
-  collection,
-  getDocs,
-} from "firebase/firestore";
+import { doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
 
 function App() {
   const challenges = [
@@ -54,8 +48,11 @@ function App() {
   ];
 
   const [user, setUser] = useState(null);
+  const [studentName, setStudentName] = useState("");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [name, setName] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
 
@@ -72,6 +69,9 @@ function App() {
       if (currentUser) {
         await loadProgress(currentUser.uid);
         await loadRanking();
+      } else {
+        setCompletedDays([]);
+        setStudentName("");
       }
     });
 
@@ -96,37 +96,46 @@ function App() {
   }, [running, seconds]);
 
   const register = async () => {
-    if (!email || !password || !name) {
-      alert("Completa todos los campos");
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      alert("Debes ingresar nombre, correo y contraseña");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("La contraseña debe tener mínimo 6 caracteres");
       return;
     }
 
     try {
-      const res = await createUserWithEmailAndPassword(auth, email, password);
+      const res = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
 
       await setDoc(doc(db, "students", res.user.uid), {
-        name: name,
-        email: email,
+        name: name.trim(),
+        email: email.trim(),
         completedDays: [],
         progress: 0,
       });
 
-      alert("Cuenta creada");
+      setStudentName(name.trim());
       setIsRegistering(false);
+      alert("Cuenta creada correctamente");
     } catch (error) {
       alert(error.message);
     }
   };
 
   const login = async () => {
-    if (!email || !password) {
-      alert("Completa los campos");
+    if (!email.trim() || !password.trim()) {
+      alert("Debes ingresar correo y contraseña");
       return;
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("Bienvenido");
+      await signInWithEmailAndPassword(auth, email.trim(), password);
     } catch (error) {
       alert(error.message);
     }
@@ -134,6 +143,10 @@ function App() {
 
   const logout = async () => {
     await signOut(auth);
+    setEmail("");
+    setPassword("");
+    setName("");
+    setIsRegistering(false);
   };
 
   const loadProgress = async (uid) => {
@@ -141,7 +154,13 @@ function App() {
     const snap = await getDoc(ref);
 
     if (snap.exists()) {
-      setCompletedDays(snap.data().completedDays || []);
+      const data = snap.data();
+
+      setCompletedDays(data.completedDays || []);
+      setStudentName(data.name || data.email || "");
+    } else {
+      setCompletedDays([]);
+      setStudentName(user?.email || "");
     }
   };
 
@@ -151,13 +170,19 @@ function App() {
     const ref = doc(db, "students", user.uid);
     const snap = await getDoc(ref);
 
-    const data = snap.data();
+    const oldData = snap.exists() ? snap.data() : {};
 
-    await setDoc(ref, {
-      ...data,
-      completedDays: newDays,
-      progress: newDays.length,
-    });
+    await setDoc(
+      ref,
+      {
+        ...oldData,
+        name: oldData.name || studentName || user.email,
+        email: user.email,
+        completedDays: newDays,
+        progress: newDays.length,
+      },
+      { merge: true }
+    );
 
     await loadRanking();
   };
@@ -166,7 +191,7 @@ function App() {
     const snapshot = await getDocs(collection(db, "students"));
     const list = snapshot.docs.map((doc) => doc.data());
 
-    const sorted = list.sort((a, b) => b.progress - a.progress);
+    const sorted = list.sort((a, b) => (b.progress || 0) - (a.progress || 0));
     setRanking(sorted);
   };
 
@@ -192,6 +217,7 @@ function App() {
         <div className="login-box">
           <img src={logo} alt="logo" className="logo" />
           <h1>DailyStudyBoost</h1>
+          <p>{isRegistering ? "Crea tu cuenta" : "Inicia sesión"}</p>
 
           {isRegistering && (
             <input
@@ -205,12 +231,14 @@ function App() {
           <input
             type="email"
             placeholder="Correo"
+            value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
 
           <input
             type="password"
             placeholder="Contraseña"
+            value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
 
@@ -224,9 +252,7 @@ function App() {
           ) : (
             <>
               <button onClick={login}>Iniciar sesión</button>
-              <button onClick={() => setIsRegistering(true)}>
-                Registrarse
-              </button>
+              <button onClick={() => setIsRegistering(true)}>Registrarse</button>
             </>
           )}
         </div>
@@ -239,7 +265,7 @@ function App() {
       <header className="header">
         <img src={logo} alt="logo" className="logo" />
         <h1>DailyStudyBoost</h1>
-        <p>{user.email}</p>
+        <p>{studentName || user.email}</p>
         <button onClick={logout}>Cerrar sesión</button>
       </header>
 
@@ -270,21 +296,22 @@ function App() {
 
       <section className="tasks">
         <h2>Desafío 30 días</h2>
+
         <ul>
-          {challenges.map((c, i) => (
+          {challenges.map((challenge, index) => (
             <li
-              key={i}
-              onClick={() => toggleChallenge(i)}
-              className={completedDays.includes(i) ? "done" : ""}
+              key={index}
+              onClick={() => toggleChallenge(index)}
+              className={completedDays.includes(index) ? "done" : ""}
             >
-              {c}
+              {challenge}
             </li>
           ))}
         </ul>
       </section>
 
       <section className="ranking">
-        <h2>Ranking</h2>
+        <h2>🏆 Ranking</h2>
 
         <div className="ranking-list">
           {ranking.map((student, index) => {
@@ -297,9 +324,7 @@ function App() {
                 </div>
 
                 <div className="rank-info">
-                  <p className="rank-name">
-                    {student.name || student.email}
-                  </p>
+                  <p className="rank-name">{student.name || student.email}</p>
                   <p className="rank-progress">
                     {student.progress || 0} días completados
                   </p>
