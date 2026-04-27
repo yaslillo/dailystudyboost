@@ -299,19 +299,31 @@ const challenges = [
         </ul>
       </section>
 
-      <section className="ranking">
-        <h2>Ranking de estudiantes</h2>
+     <section className="ranking">
+  <h2>🏆 Ranking de estudiantes</h2>
 
-        <ol>
-          {ranking.map((student, index) => (
-            <li key={index}>
-              {student.name || student.email} — {student.progress || 0} días
-            </li>
-          ))}
-        </ol>
-      </section>
-    </div>
-  );
-}
+  <div className="ranking-list">
+    {ranking.map((student, index) => {
+      const medals = ["🥇", "🥈", "🥉"];
+
+      return (
+        <div className="ranking-card" key={index}>
+          <div className="rank-position">
+            {medals[index] || #${index + 1}}
+          </div>
+
+          <div className="rank-info">
+            <p className="rank-name">
+              {student.name || student.email}
+            </p>
+            <p className="rank-progress">
+              {student.progress || 0} días completados
+            </p>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</section>
 
 export default App;
