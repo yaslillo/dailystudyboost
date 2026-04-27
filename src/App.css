@@ -1,0 +1,159 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f9ff;
+}
+
+.app {
+  padding: 20px;
+}
+
+/* HEADER */
+.header {
+  background: linear-gradient(135deg, #0b3c6d, #1f7acf, #00bfff);
+  color: white;
+  padding: 25px 20px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+/* LOGOTIPO */
+.logo {
+  width: 180px;
+  height: auto;
+  display: block;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.reset-btn {
+  margin-left: 10px;
+}
+
+.header h1 {
+  font-size: 36px;
+  margin: 10px 0;
+}
+
+.header p {
+  font-size: 18px;
+  margin: 0;
+}
+
+/* RESUMEN */
+.summary {
+  background: white;
+  padding: 18px;
+  margin-top: 18px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.summary h2 {
+  color: #0b3c6d;
+}
+
+/* POMODORO */
+.pomodoro {
+  background: linear-gradient(135deg, #1f7acf, #00bfff);
+  color: white;
+  padding: 20px;
+  margin-top: 18px;
+  border-radius: 15px;
+  text-align: center;
+}
+
+.timer {
+  font-size: 40px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.pomodoro button {
+  background: white;
+  color: #0b3c6d;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.pomodoro button:hover {
+  background: #e6f7ff;
+}
+
+/* TAREAS */
+.tasks {
+  background: white;
+  padding: 18px;
+  margin-top: 18px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.tasks h2 {
+  color: #0b3c6d;
+}
+
+.tasks ul {
+  padding-left: 20px;
+}
+
+.tasks li {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.tasks li {
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: 0.2s;
+}
+
+.tasks li:hover {
+  transform: scale(1.02);
+}
+
+.done {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.login-box {
+  background: white;
+  padding: 25px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.login-box input {
+  display: block;
+  width: 90%;
+  max-width: 300px;
+  margin: 10px auto;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+.ranking {
+  background: white;
+  padding: 18px;
+  margin-top: 18px;
+  border-radius: 15px;
+}
+
+.ranking h2 {
+  color: #0b3c6d;
+}
+
+.ranking li {
+  margin-bottom: 8px;
+}
+
+.done {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
