@@ -332,33 +332,37 @@ function App() {
         </section>
 
         <section className="ranking">
-          <h2>🏆 Ranking</h2>
+  <h2>🏆 Ranking</h2>
 
-          <div className="ranking-list">
-            {ranking.map((student, index) => {
-              const medals = ["🥇", "🥈", "🥉"];
+  <div className="ranking-list">
+    {ranking.map((student, index) => {
+      const medals = ["🥇", "🥈", "🥉"];
 
-              return (
-             <div
-             className={`ranking-card ${index === 0 ? "gold" : ""} ${
-              index === 1 ? "silver" : ""
-                } ${index === 2 ? "bronze" : ""}`}
-                   key={index}
-                     >
+      let rankClass = "ranking-card";
+      if (index === 0) rankClass += " gold";
+      if (index === 1) rankClass += " silver";
+      if (index === 2) rankClass += " bronze";
 
-                  <div className="rank-info">
-                    <p className="rank-name">
-                      {student.name || student.email}
-                    </p>
-                    <p className="rank-progress">
-                      {student.progress || 0} días completados
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+      return (
+        <div className={rankClass} key={index}>
+          <div className="rank-position">
+            {medals[index] || "#" + (index + 1)}
           </div>
-        </section>
+
+          <div className="rank-info">
+            <p className="rank-name">
+              {student.name || student.email}
+            </p>
+
+            <p className="rank-progress">
+              {student.progress || 0} días completados
+            </p>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</section>
       </div>
     </div>
   );
