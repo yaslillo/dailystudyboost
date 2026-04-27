@@ -7,14 +7,16 @@ body {
 /* CONTENEDOR GENERAL */
 .app {
   padding: 20px;
+  max-width: 1100px;
+  margin: auto;
 }
 
-/* LOGIN */
+/* ---------------- LOGIN ---------------- */
 .login-box {
   background: white;
   padding: 30px;
   max-width: 400px;
-  margin: 60px auto;
+  margin: 80px auto;
   border-radius: 20px;
   text-align: center;
   box-shadow: 0 10px 25px rgba(0, 80, 160, 0.12);
@@ -24,7 +26,7 @@ body {
   display: block;
   width: 100%;
   margin: 10px 0;
-  padding: 10px;
+  padding: 12px;
   border-radius: 10px;
   border: 1px solid #ccc;
 }
@@ -43,13 +45,14 @@ body {
   background: #0b3c6d;
 }
 
-/* HEADER */
+/* ---------------- HEADER ---------------- */
 .header {
   background: linear-gradient(135deg, #0b3c6d, #1f7acf, #00bfff);
   color: white;
-  padding: 20px;
+  padding: 25px;
   border-radius: 20px;
   text-align: center;
+  margin-bottom: 20px;
 }
 
 .header button {
@@ -62,13 +65,17 @@ body {
   cursor: pointer;
 }
 
+.header button:hover {
+  background: #e6f3ff;
+}
+
 /* LOGO */
 .logo {
   width: 90px;
   margin-bottom: 10px;
 }
 
-/* RESUMEN */
+/* ---------------- RESUMEN ---------------- */
 .summary {
   background: white;
   padding: 20px;
@@ -77,24 +84,25 @@ body {
   text-align: center;
 }
 
-/* POMODORO */
+/* ---------------- POMODORO ---------------- */
 .pomodoro {
   background: #1f7acf;
   color: white;
-  padding: 20px;
+  padding: 25px;
   margin-top: 20px;
   border-radius: 20px;
   text-align: center;
 }
 
 .timer {
-  font-size: 40px;
-  margin: 10px 0;
+  font-size: 42px;
+  margin: 15px 0;
+  font-weight: bold;
 }
 
 .pomodoro button {
   margin: 5px;
-  padding: 10px;
+  padding: 10px 15px;
   border: none;
   background: #00bfff;
   color: white;
@@ -102,7 +110,11 @@ body {
   cursor: pointer;
 }
 
-/* TAREAS */
+.pomodoro button:hover {
+  background: #0099cc;
+}
+
+/* ---------------- TAREAS ---------------- */
 .tasks {
   background: white;
   padding: 25px;
@@ -148,7 +160,7 @@ body {
   color: #2d6a4f;
 }
 
-/* RANKING */
+/* ---------------- RANKING ---------------- */
 .ranking {
   background: white;
   padding: 25px;

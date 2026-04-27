@@ -3,6 +3,7 @@ import "./App.css";
 import logo from "./logo.png";
 
 import { auth, db } from "./firebase";
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -10,25 +11,57 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 
-import {
-  doc,
-  setDoc,
-  getDoc,
-  collection,
-  getDocs,
-} from "firebase/firestore";
+import { doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
 
 function App() {
+  const challenges = [
+    "Día 1: Define tu meta principal",
+    "Día 2: Estudia 15 minutos sin distracciones",
+    "Día 3: Organiza tu espacio de estudio",
+    "Día 4: Usa la técnica Pomodoro\n25 min estudio + 5 min descanso\nRepite 4 veces y descansa",
+    "Día 5: Elimina 1 distracción importante",
+    "Día 6: Haz un resumen de lo aprendido",
+    "Día 7: Evalúa tu semana",
+    "Día 8: Prueba mapas mentales",
+    "Día 9: Estudia enseñando",
+    "Día 10: Técnica Feynman\nExplica con palabras simples\nSi no puedes, vuelve a estudiar",
+    "Día 11: Haz preguntas sobre el tema",
+    "Día 12: Practica con ejercicios",
+    "Día 13: Repaso activo",
+    "Día 14: Test rápido",
+    "Día 15: Estudia aunque no tengas motivación",
+    "Día 16: Bloquea redes sociales",
+    "Día 17: Haz 2 sesiones Pomodoro",
+    "Día 18: Estudia a la misma hora",
+    "Día 19: Identifica tu mejor horario",
+    "Día 20: Estudia un tema difícil primero",
+    "Día 21: Recompénsate por cumplir",
+    "Día 22: Planifica tu semana completa",
+    "Día 23: Estudio profundo 45 min",
+    "Día 24: Simula una prueba",
+    "Día 25: Corrige errores",
+    "Día 26: Enseña a alguien",
+    "Día 27: Revisa todo el progreso",
+    "Día 28: Optimiza tu método",
+    "Día 29: Estudia con máxima concentración",
+    "Día 30: Reflexión final + nuevos objetivos",
+  ];
+
   const [user, setUser] = useState(null);
+  const [studentName, setStudentName] = useState("");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [name, setName] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const [completedDays, setCompletedDays] = useState([]);
   const [ranking, setRanking] = useState([]);
 
-  // ------------------------
-  // AUTH
-  // ------------------------
+  const [seconds, setSeconds] = useState(25 * 60);
+  const [running, setRunning] = useState(false);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -38,170 +71,253 @@ function App() {
         await loadRanking();
       } else {
         setCompletedDays([]);
+        setStudentName("");
       }
     });
 
     return () => unsubscribe();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ------------------------
-  // LOAD PROGRESS
-  // ------------------------
-  const loadProgress = async (uid) => {
-    const docRef = doc(db, "users", uid);
-    const docSnap = await getDoc(docRef);
+  useEffect(() => {
+    let timer;
 
-    if (docSnap.exists()) {
-      setCompletedDays(docSnap.data().completedDays || []);
+    if (running && seconds > 0) {
+      timer = setInterval(() => {
+        setSeconds((prev) => prev - 1);
+      }, 1000);
+    }
+
+    if (seconds === 0) {
+      setRunning(false);
+      alert("¡Pomodoro terminado! ☕");
+    }
+
+    return () => clearInterval(timer);
+  }, [running, seconds]);
+
+  const register = async () => {
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      alert("Debes ingresar nombre, correo y contraseña");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("La contraseña debe tener mínimo 6 caracteres");
+      return;
+    }
+
+    try {
+      const res = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+
+      await setDoc(doc(db, "users", res.user.uid), {
+        name: name.trim(),
+        email: email.trim(),
+        completedDays: [],
+        progress: 0,
+      });
+
+      setStudentName(name.trim());
+      setIsRegistering(false);
+      alert("Cuenta creada correctamente");
+    } catch (error) {
+      alert(error.message);
     }
   };
 
-  // ------------------------
-  // SAVE PROGRESS
-  // ------------------------
-  const saveProgress = async (days) => {
-    if (!user) return;
-
-    const docRef = doc(db, "users", user.uid);
-
-    await setDoc(docRef, {
-      email: user.email,
-      progress: days.length,
-      completedDays: days,
-    });
-  };
-
-  // ------------------------
-  // LOAD RANKING
-  // ------------------------
-  const loadRanking = async () => {
-    const querySnapshot = await getDocs(collection(db, "users"));
-
-    const users = [];
-
-    querySnapshot.forEach((doc) => {
-      users.push(doc.data());
-    });
-
-    // ordenar por progreso
-    users.sort((a, b) => (b.progress || 0) - (a.progress || 0));
-
-    setRanking(users);
-  };
-
-  // ------------------------
-  // LOGIN
-  // ------------------------
-  const register = async () => {
-    await createUserWithEmailAndPassword(auth, email, password);
-  };
-
   const login = async () => {
-    await signInWithEmailAndPassword(auth, email, password);
+    if (!email.trim() || !password.trim()) {
+      alert("Debes ingresar correo y contraseña");
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   const logout = async () => {
     await signOut(auth);
+    setEmail("");
+    setPassword("");
+    setName("");
+    setIsRegistering(false);
   };
 
-  // ------------------------
-  // HANDLE DAY CLICK
-  // ------------------------
-  const toggleDay = (day) => {
+  const loadProgress = async (uid) => {
+    const ref = doc(db, "users", uid);
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      setCompletedDays(data.completedDays || []);
+      setStudentName(data.name || data.email || "");
+    } else {
+      setCompletedDays([]);
+    }
+  };
+
+  const saveProgress = async (newDays) => {
+    if (!user) return;
+
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+    const oldData = snap.exists() ? snap.data() : {};
+
+    await setDoc(
+      ref,
+      {
+        ...oldData,
+        name: oldData.name || studentName || user.email,
+        email: user.email,
+        completedDays: newDays,
+        progress: newDays.length,
+      },
+      { merge: true }
+    );
+
+    await loadProgress(user.uid);
+    await loadRanking();
+  };
+
+  const loadRanking = async () => {
+    const snapshot = await getDocs(collection(db, "users"));
+
+    const list = snapshot.docs.map((doc) => {
+      const data = doc.data();
+
+      return {
+        ...data,
+        progress: data.completedDays
+          ? data.completedDays.length
+          : data.progress || 0,
+      };
+    });
+
+    const sorted = list.sort((a, b) => (b.progress || 0) - (a.progress || 0));
+    setRanking(sorted);
+  };
+
+  const toggleChallenge = async (index) => {
     let updated;
 
-    if (completedDays.includes(day)) {
-      updated = completedDays.filter((d) => d !== day);
+    if (completedDays.includes(index)) {
+      updated = completedDays.filter((day) => day !== index);
     } else {
-      updated = [...completedDays, day];
+      updated = [...completedDays, index];
     }
 
     setCompletedDays(updated);
-    saveProgress(updated);
+    await saveProgress(updated);
   };
 
-  // ------------------------
-  // CHALLENGE ARRAY
-  // ------------------------
-  const challenges = [
-    "Define tu meta",
-    "Estudia 25 minutos",
-    "Elimina distracciones",
-    "Organiza tu espacio",
-    "Haz un resumen",
-    "Revisa apuntes",
-    "Explica lo aprendido",
-    "Practica ejercicios",
-    "Usa Pomodoro",
-    "Repasa lo difícil",
-    "Estudia sin celular",
-    "Haz un test",
-    "Corrige errores",
-    "Refuerza debilidades",
-    "Haz mapa mental",
-    "Explica en voz alta",
-    "Repite lo aprendido",
-    "Simula prueba",
-    "Revisión rápida",
-    "Practica más",
-    "Estudia profundo",
-    "Evalúa progreso",
-    "Corrige hábitos",
-    "Optimiza método",
-    "Enfócate 100%",
-    "Reflexiona",
-    "Ajusta estrategia",
-    "Consolida",
-    "Revisión final",
-    "Cierre del desafío",
-  ];
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
 
-  // ------------------------
-  // UI
-  // ------------------------
   if (!user) {
     return (
       <div className="app">
-        <h2>Login</h2>
-        <input
-          placeholder="Email"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div className="login-box">
+          <img src={logo} alt="logo" className="logo" />
+          <h1>DailyStudyBoost</h1>
+          <p>{isRegistering ? "Crea tu cuenta" : "Inicia sesión"}</p>
 
-        <button onClick={login}>Login</button>
-        <button onClick={register}>Registro</button>
+          {isRegistering && (
+            <input
+              type="text"
+              placeholder="Nombre"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          )}
+
+          <input
+            type="email"
+            placeholder="Correo"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          {isRegistering ? (
+            <>
+              <button onClick={register}>Crear cuenta</button>
+              <button onClick={() => setIsRegistering(false)}>
+                Ya tengo cuenta
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={login}>Iniciar sesión</button>
+              <button onClick={() => setIsRegistering(true)}>Registrarse</button>
+            </>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="app">
-      <img src={logo} alt="logo" className="logo" />
+      <header className="header">
+        <img src={logo} alt="logo" className="logo" />
+        <h1>DailyStudyBoost</h1>
+        <p>{studentName || user.email}</p>
+        <button onClick={logout}>Cerrar sesión</button>
+      </header>
 
-      <h2>Progreso</h2>
-      <p>{completedDays.length}/30 días</p>
+      <section className="summary">
+        <h2>Progreso</h2>
+        <p>{completedDays.length}/30 días</p>
+      </section>
 
-      <button onClick={logout}>Cerrar sesión</button>
+      <section className="pomodoro">
+        <h2>Pomodoro</h2>
+        <p className="timer">
+          {minutes}:{secs.toString().padStart(2, "0")}
+        </p>
+
+        <button onClick={() => setRunning(!running)}>
+          {running ? "Pausar" : "Iniciar"}
+        </button>
+
+        <button
+          onClick={() => {
+            setRunning(false);
+            setSeconds(25 * 60);
+          }}
+        >
+          Reiniciar
+        </button>
+      </section>
 
       <section className="tasks">
         <h2>Desafío 30 días</h2>
 
-        {challenges.map((task, index) => (
-          <div
-            key={index}
-            className={`task ${
-              completedDays.includes(index) ? "completed" : ""
-            }`}
-            onClick={() => toggleDay(index)}
-          >
-            Día {index + 1}: {task}
-          </div>
-        ))}
+        <ul>
+          {challenges.map((challenge, index) => (
+            <li
+              key={index}
+              onClick={() => toggleChallenge(index)}
+              className={completedDays.includes(index) ? "done" : ""}
+            >
+              {challenge}
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="ranking">
@@ -218,10 +334,7 @@ function App() {
                 </div>
 
                 <div className="rank-info">
-                  <p className="rank-name">
-                    {student.email}
-                  </p>
-
+                  <p className="rank-name">{student.name || student.email}</p>
                   <p className="rank-progress">
                     {student.progress || 0} días completados
                   </p>
