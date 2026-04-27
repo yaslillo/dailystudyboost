@@ -287,7 +287,7 @@ function App() {
   <div className="progress-bar">
     <div
       className="progress-fill"
-      style={{ width: '${(completedDays.length / 30) * 100}%' }}
+      style={{ width: (completedDays.length / 30) * 100 + "%" }}
     ></div>
   </div>
 
