@@ -62,6 +62,10 @@ function App() {
   const [seconds, setSeconds] = useState(25 * 60);
   const [running, setRunning] = useState(false);
 
+  const [showOnboarding, setShowOnboarding] = useState(
+    localStorage.getItem("onboardingSeen") !== "true"
+  );
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -151,44 +155,48 @@ function App() {
     setIsRegistering(false);
   };
 
-const loadProgress = async (uid) => {
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
+  const finishOnboarding = () => {
+    localStorage.setItem("onboardingSeen", "true");
+    setShowOnboarding(false);
+  };
 
-  if (snap.exists()) {
-    const data = snap.data();
-    setCompletedDays(data.completedDays || []);
-    setStudentName(data.name || data.email || "");
-  } else {
-    setCompletedDays([]);
-  }
-};
+  const loadProgress = async (uid) => {
+    const ref = doc(db, "users", uid);
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      setCompletedDays(data.completedDays || []);
+      setStudentName(data.name || data.email || "");
+    } else {
+      setCompletedDays([]);
+    }
+  };
 
   const saveProgress = async (newDays) => {
-  const currentUser = auth.currentUser;
+    const currentUser = auth.currentUser;
 
-  if (!currentUser) return;
+    if (!currentUser) return;
 
-  const ref = doc(db, "users", currentUser.uid);
-  const snap = await getDoc(ref);
-  const oldData = snap.exists() ? snap.data() : {};
+    const ref = doc(db, "users", currentUser.uid);
+    const snap = await getDoc(ref);
+    const oldData = snap.exists() ? snap.data() : {};
 
-  await setDoc(
-    ref,
-    {
-      ...oldData,
-      name: oldData.name || studentName || currentUser.email,
-      email: currentUser.email,
-      completedDays: newDays,
-      progress: newDays.length,
-    },
-    { merge: true }
-  );
+    await setDoc(
+      ref,
+      {
+        ...oldData,
+        name: oldData.name || studentName || currentUser.email,
+        email: currentUser.email,
+        completedDays: newDays,
+        progress: newDays.length,
+      },
+      { merge: true }
+    );
 
-  await loadProgress(currentUser.uid);
-  await loadRanking();
-};
-
+    await loadProgress(currentUser.uid);
+    await loadRanking();
+  };
 
   const loadRanking = async () => {
     const snapshot = await getDocs(collection(db, "users"));
@@ -208,21 +216,46 @@ const loadProgress = async (uid) => {
     setRanking(sorted);
   };
 
-const toggleChallenge = async (index) => {
-  let updated;
+  const toggleChallenge = async (index) => {
+    let updated;
 
-  if (completedDays.includes(index)) {
-    updated = completedDays.filter((day) => day !== index);
-  } else {
-    updated = [...completedDays, index];
-  }
+    if (completedDays.includes(index)) {
+      updated = completedDays.filter((day) => day !== index);
+    } else {
+      updated = [...completedDays, index];
+    }
 
-  setCompletedDays(updated);
-  await saveProgress(updated);
-};
+    setCompletedDays(updated);
+    await saveProgress(updated);
+  };
 
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
+
+  if (showOnboarding) {
+    return (
+      <div className="onboarding">
+        <img src={logo} alt="logo" className="onboarding-logo" />
+
+        <h1>Bienvenido a DailyStudyBoost 🚀</h1>
+
+        <p className="onboarding-text">
+          Mejora tu enfoque, vence la procrastinación y construye hábitos de
+          estudio en 30 días.
+        </p>
+
+        <ul className="onboarding-list">
+          <li>✅ Desafíos diarios</li>
+          <li>⏱️ Técnica Pomodoro</li>
+          <li>🏆 Ranking de estudiantes</li>
+        </ul>
+
+        <button onClick={finishOnboarding} className="start-btn">
+          Empezar
+        </button>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -281,21 +314,28 @@ const toggleChallenge = async (index) => {
         <img src={logo} alt="logo" className="logo" />
         <h1>DailyStudyBoost</h1>
         <p>Hola, {studentName || user.email} 👋</p>
+
+        <p className="description">
+          🚀 Mejora tu enfoque y vence la procrastinación con desafíos diarios y
+          la técnica Pomodoro. Completa 30 días de hábitos de estudio, sigue tu
+          progreso y compite en el ranking con otros estudiantes.
+        </p>
+
         <button onClick={logout}>Cerrar sesión</button>
       </header>
 
-    <section className="summary">
-  <h2>Progreso</h2>
+      <section className="summary">
+        <h2>Progreso</h2>
 
-  <div className="progress-bar">
-    <div
-      className="progress-fill"
-      style={{ width: (completedDays.length / 30) * 100 + "%" }}
-    ></div>
-  </div>
+        <div className="progress-bar">
+          <div
+            className="progress-fill"
+            style={{ width: (completedDays.length / 30) * 100 + "%" }}
+          ></div>
+        </div>
 
-  <p>{completedDays.length}/30 días completados</p>
-</section>
+        <p>{completedDays.length}/30 días completados</p>
+      </section>
 
       <section className="pomodoro">
         <h2>Pomodoro</h2>
@@ -335,37 +375,35 @@ const toggleChallenge = async (index) => {
         </section>
 
         <section className="ranking">
-  <h2>🏆 Ranking</h2>
+          <h2>🏆 Ranking</h2>
 
-  <div className="ranking-list">
-    {ranking.map((student, index) => {
-      const medals = ["🥇", "🥈", "🥉"];
+          <div className="ranking-list">
+            {ranking.map((student, index) => {
+              const medals = ["🥇", "🥈", "🥉"];
 
-      let rankClass = "ranking-card";
-      if (index === 0) rankClass += " gold";
-      if (index === 1) rankClass += " silver";
-      if (index === 2) rankClass += " bronze";
+              let rankClass = "ranking-card";
+              if (index === 0) rankClass += " gold";
+              if (index === 1) rankClass += " silver";
+              if (index === 2) rankClass += " bronze";
 
-      return (
-        <div className={rankClass} key={index}>
-          <div className="rank-position">
-            {medals[index] || "#" + (index + 1)}
+              return (
+                <div className={rankClass} key={index}>
+                  <div className="rank-position">
+                    {medals[index] || "#" + (index + 1)}
+                  </div>
+
+                  <div className="rank-info">
+                    <p className="rank-name">{student.name || student.email}</p>
+
+                    <p className="rank-progress">
+                      {student.progress || 0} días completados
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-
-          <div className="rank-info">
-            <p className="rank-name">
-              {student.name || student.email}
-            </p>
-
-            <p className="rank-progress">
-              {student.progress || 0} días completados
-            </p>
-          </div>
-        </div>
-      );
-    })}
-  </div>
-</section>
+        </section>
       </div>
     </div>
   );

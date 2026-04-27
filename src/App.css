@@ -278,3 +278,52 @@ button:hover {
     grid-template-columns: 1fr;
   }
 }
+
+.description {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.9;
+  max-width: 500px;
+  text-align: center;
+}
+
+.onboarding {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0b3c6d, #1f7acf, #00bfff);
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+.onboarding-logo {
+  width: 120px;
+  margin-bottom: 20px;
+}
+
+.onboarding-text {
+  max-width: 430px;
+  line-height: 1.5;
+}
+
+.onboarding-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+.onboarding-list li {
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.start-btn {
+  background: white;
+  color: #1f7acf;
+  padding: 12px 28px;
+  border-radius: 25px;
+  font-weight: bold;
+}
