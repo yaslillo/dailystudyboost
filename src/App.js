@@ -144,6 +144,12 @@ const login = async () => {
     alert("Correo o contraseña incorrectos.");
   }
 };
+
+const logout = async () => {
+  await signOut(auth);
+};
+
+
   const loadProgress = async (uid) => {
     const ref = doc(db, "users", uid);
     const snap = await getDoc(ref);
