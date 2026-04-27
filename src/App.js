@@ -48,6 +48,8 @@ function App() {
   ];
 
   const [user, setUser] = useState(null);
+  const [isRegistering, setIsRegistering] = useState(false);
+
   const [name, setName] = useState("");
   const [studentName, setStudentName] = useState("");
   const [email, setEmail] = useState("");
@@ -83,20 +85,16 @@ function App() {
 
     if (seconds === 0) {
       setRunning(false);
-      alert("¡Pomodoro terminado! Toma un descanso ☕");
+      alert("¡Pomodoro terminado! ☕");
     }
 
     return () => clearInterval(timer);
   }, [running, seconds]);
 
+  // 🔐 REGISTRO
   const register = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) {
       alert("Debes ingresar nombre, correo y contraseña");
-      return;
-    }
-
-    if (password.length < 6) {
-      alert("La contraseña debe tener mínimo 6 caracteres");
       return;
     }
 
@@ -114,13 +112,14 @@ function App() {
         progress: 0,
       });
 
-      setStudentName(name.trim());
-      alert("Cuenta creada correctamente");
+      alert("Cuenta creada");
+      setIsRegistering(false);
     } catch (error) {
       alert(error.message);
     }
   };
 
+  // 🔐 LOGIN
   const login = async () => {
     if (!email.trim() || !password.trim()) {
       alert("Debes ingresar correo y contraseña");
@@ -129,7 +128,6 @@ function App() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      alert("Sesión iniciada");
     } catch (error) {
       alert(error.message);
     }
@@ -138,31 +136,18 @@ function App() {
   const logout = async () => {
     await signOut(auth);
     setStudentName("");
-    setCompletedDays([]);
   };
 
- const loadProgress = async (uid) => {
-  const userRef = doc(db, "students", uid);
-  const userSnap = await getDoc(userRef);
+  const loadProgress = async (uid) => {
+    const userRef = doc(db, "students", uid);
+    const userSnap = await getDoc(userRef);
 
-  if (userSnap.exists()) {
-    const data = userSnap.data();
-
-    setCompletedDays(data.completedDays || []);
-    setStudentName(data.name || data.email || "");
-
-    // 🔥 si no tiene nombre, lo actualiza
-    if (!data.name) {
-      await setDoc(
-        doc(db, "students", uid),
-        { name: name || data.email },
-        { merge: true }
-      );
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      setCompletedDays(data.completedDays || []);
+      setStudentName(data.name || data.email);
     }
-  } else {
-    setCompletedDays([]);
-  }
-};
+  };
 
   const saveProgress = async (newCompletedDays) => {
     if (!user) return;
@@ -185,7 +170,7 @@ function App() {
     const querySnapshot = await getDocs(collection(db, "students"));
     const list = querySnapshot.docs.map((doc) => doc.data());
 
-    const sorted = list.sort((a, b) => (b.progress || 0) - (a.progress || 0));
+    const sorted = list.sort((a, b) => b.progress - a.progress);
     setRanking(sorted);
   };
 
@@ -205,20 +190,24 @@ function App() {
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
 
+  // 🟡 LOGIN UI
   if (!user) {
     return (
       <div className="app">
         <div className="login-box">
           <img src={logo} alt="logo" className="logo" />
           <h1>DailyStudyBoost</h1>
-          <p>Inicia sesión o crea tu cuenta</p>
 
-          <input
-            type="text"
-            placeholder="Nombre (solo para registrarte)"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <p>{isRegistering ? "Crear cuenta" : "Iniciar sesión"}</p>
+
+          {isRegistering && (
+            <input
+              type="text"
+              placeholder="Nombre"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          )}
 
           <input
             type="email"
@@ -234,37 +223,45 @@ function App() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <button onClick={login}>Iniciar sesión</button>
-          <button onClick={register}>Registrarse</button>
+          {isRegistering ? (
+            <button onClick={register}>Crear cuenta</button>
+          ) : (
+            <button onClick={login}>Iniciar sesión</button>
+          )}
+
+          <button onClick={() => setIsRegistering(!isRegistering)}>
+            {isRegistering
+              ? "Ya tengo cuenta"
+              : "No tengo cuenta, registrarme"}
+          </button>
         </div>
       </div>
     );
   }
 
+  // 🟢 APP
   return (
     <div className="app">
       <header className="header">
         <img src={logo} alt="logo" className="logo" />
         <h1>DailyStudyBoost</h1>
-        <p>{studentName || user.email}</p>
+        <p>{studentName}</p>
         <button onClick={logout}>Cerrar sesión</button>
       </header>
 
       <section className="summary">
-        <h2>Progreso del desafío</h2>
-        <p>✅ Completado: {completedDays.length}/30 días</p>
+        <h2>Progreso</h2>
+        <p>{completedDays.length}/30 días</p>
       </section>
 
       <section className="pomodoro">
         <h2>Pomodoro</h2>
-        <p className="timer">
+        <p>
           {minutes}:{secs.toString().padStart(2, "0")}
         </p>
-
         <button onClick={() => setRunning(!running)}>
           {running ? "Pausar" : "Iniciar"}
         </button>
-
         <button
           onClick={() => {
             setRunning(false);
@@ -276,28 +273,26 @@ function App() {
       </section>
 
       <section className="tasks">
-        <h2>Desafío 30 días</h2>
-
+        <h2>Desafío</h2>
         <ul>
-          {challenges.map((challenge, index) => (
+          {challenges.map((c, i) => (
             <li
-              key={index}
-              onClick={() => toggleChallenge(index)}
-              className={completedDays.includes(index) ? "done" : ""}
+              key={i}
+              onClick={() => toggleChallenge(i)}
+              className={completedDays.includes(i) ? "done" : ""}
             >
-              {challenge}
+              {c}
             </li>
           ))}
         </ul>
       </section>
 
       <section className="ranking">
-        <h2>Ranking de estudiantes</h2>
-
+        <h2>Ranking</h2>
         <ol>
-          {ranking.map((student, index) => (
-            <li key={index}>
-              {student.name || student.email} — {student.progress || 0} días
+          {ranking.map((s, i) => (
+            <li key={i}>
+              {s.name || s.email} — {s.progress} días
             </li>
           ))}
         </ol>
