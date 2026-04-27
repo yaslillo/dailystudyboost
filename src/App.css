@@ -327,3 +327,32 @@ button:hover {
   border-radius: 25px;
   font-weight: bold;
 }
+
+.achievements {
+  background: white;
+  padding: 24px;
+  margin: 24px auto;
+  max-width: 900px;
+  border-radius: 24px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 80, 160, 0.12);
+}
+
+.achievements h2 {
+  color: #0b3c6d;
+}
+
+.achievement-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.achievement-card {
+  background: linear-gradient(135deg, #fff7cc, #ffe066);
+  padding: 16px;
+  border-radius: 18px;
+  font-weight: bold;
+  box-shadow: 0 6px 15px rgba(0, 80, 160, 0.12);
+}

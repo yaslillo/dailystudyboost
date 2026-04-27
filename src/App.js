@@ -232,6 +232,18 @@ function App() {
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
 
+  const achievements = [
+    { days: 1, title: "🎯 Primer paso" },
+    { days: 5, title: "🔥 Constancia" },
+    { days: 10, title: "🚀 En camino" },
+    { days: 20, title: "🏆 Disciplina" },
+    { days: 30, title: "👑 Maestro StudyBoost" },
+  ];
+
+  const unlockedAchievements = achievements.filter(
+    (achievement) => completedDays.length >= achievement.days
+  );
+
   if (showOnboarding) {
     return (
       <div className="onboarding">
@@ -335,6 +347,22 @@ function App() {
         </div>
 
         <p>{completedDays.length}/30 días completados</p>
+      </section>
+
+      <section className="achievements">
+        <h2>Logros desbloqueados</h2>
+
+        {unlockedAchievements.length === 0 ? (
+          <p>Aún no tienes logros. Completa tu primer día para desbloquear uno 🎯</p>
+        ) : (
+          <div className="achievement-list">
+            {unlockedAchievements.map((achievement, index) => (
+              <div className="achievement-card" key={index}>
+                {achievement.title}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="pomodoro">
