@@ -64,8 +64,6 @@ function App() {
   const [pomodoroSessions, setPomodoroSessions] = useState(0);
   const [notification, setNotification] = useState(null);
 
-  const [notification, setNotification] = useState(null);
-
   const [showOnboarding, setShowOnboarding] = useState(
     localStorage.getItem("onboardingSeen") !== "true"
   );
