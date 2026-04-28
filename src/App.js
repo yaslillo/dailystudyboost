@@ -268,22 +268,16 @@ const showSuccessNotification = (sessions) => {
       { merge: true }
     );
 
-    playSuccessSound();
-    const showSuccessNotification = (sessions) => {
-  setNotification({
-    title: "🎉 ¡Pomodoro completado!",
-    message: `Sumaste 1 sesión de enfoque. Total: ${sessions} Pomodoros`,
-  });
-
   setTimeout(() => {
     setNotification(null);
   }, 4000);
 };
-    showSuccessNotification(newPomodoroSessions);
 
-    setSeconds(25 * 60);
-    showSuccessNotification(newPomodoroSessions);
-    await loadProgress(currentUser.uid);
+  playSuccessSound();
+showSuccessNotification(newPomodoroSessions);
+
+setSeconds(25 * 60);
+await loadProgress(currentUser.uid);
   };
 
   const loadRanking = async () => {
