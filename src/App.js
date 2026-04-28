@@ -62,6 +62,7 @@ function App() {
   const [seconds, setSeconds] = useState(25 * 60);
   const [running, setRunning] = useState(false);
   const [pomodoroSessions, setPomodoroSessions] = useState(0);
+  const [notification, setNotification] = useState(null);
 
   const [notification, setNotification] = useState(null);
 
@@ -270,9 +271,20 @@ const showSuccessNotification = (sessions) => {
     );
 
     playSuccessSound();
+    const showSuccessNotification = (sessions) => {
+  setNotification({
+    title: "🎉 ¡Pomodoro completado!",
+    message: `Sumaste 1 sesión de enfoque. Total: ${sessions} Pomodoros`,
+  });
+
+  setTimeout(() => {
+    setNotification(null);
+  }, 4000);
+};
     showSuccessNotification(newPomodoroSessions);
 
     setSeconds(25 * 60);
+    showSuccessNotification(newPomodoroSessions);
     await loadProgress(currentUser.uid);
   };
 
