@@ -144,7 +144,6 @@ const showSuccessNotification = (sessions) => {
     setNotification(null);
   }, 4500);
 };
-
   const register = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) {
       alert("Debes ingresar nombre, correo y contraseña");
