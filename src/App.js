@@ -248,7 +248,7 @@ const showSuccessNotification = (sessions) => {
   const currentUser = auth.currentUser;
   if (!currentUser) return;
 
-  const newPomodoroSessions = pomodoroSessions + 1;
+const newPomodoroSessions = pomodoroSessions + 1;
   setPomodoroSessions(newPomodoroSessions);
 
   const ref = doc(db, "users", currentUser.uid);
