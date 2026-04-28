@@ -244,41 +244,36 @@ const showSuccessNotification = (sessions) => {
     await loadRanking();
   };
 
-  const completePomodoro = async () => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
+ const completePomodoro = async () => {
+  const currentUser = auth.currentUser;
+  if (!currentUser) return;
 
-    const newPomodoroSessions = pomodoroSessions + 1;
-    setPomodoroSessions(newPomodoroSessions);
+  const newPomodoroSessions = pomodoroSessions + 1;
+  setPomodoroSessions(newPomodoroSessions);
 
-    const ref = doc(db, "users", currentUser.uid);
-    const snap = await getDoc(ref);
-    const oldData = snap.exists() ? snap.data() : {};
+  const ref = doc(db, "users", currentUser.uid);
+  const snap = await getDoc(ref);
+  const oldData = snap.exists() ? snap.data() : {};
 
-    await setDoc(
-      ref,
-      {
-        ...oldData,
-        name: oldData.name || studentName || currentUser.email,
-        email: currentUser.email,
-        completedDays,
-        progress: completedDays.length,
-        pomodoroSessions: newPomodoroSessions,
-      },
-      { merge: true }
-    );
-
-  setTimeout(() => {
-    setNotification(null);
-  }, 4000);
-};
+  await setDoc(
+    ref,
+    {
+      ...oldData,
+      name: oldData.name || studentName || currentUser.email,
+      email: currentUser.email,
+      completedDays,
+      progress: completedDays.length,
+      pomodoroSessions: newPomodoroSessions,
+    },
+    { merge: true }
+  );
 
   playSuccessSound();
-showSuccessNotification(newPomodoroSessions);
+  showSuccessNotification(newPomodoroSessions);
 
-setSeconds(25 * 60);
-await loadProgress(currentUser.uid);
-  };
+  setSeconds(25 * 60);
+  await loadProgress(currentUser.uid);
+};
 
   const loadRanking = async () => {
     const snapshot = await getDocs(collection(db, "users"));
