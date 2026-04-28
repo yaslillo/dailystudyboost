@@ -137,13 +137,14 @@ function App() {
 const showSuccessNotification = (sessions) => {
   setNotification({
     title: "🎉 ¡Pomodoro completado!",
-    message: 'Sumaste 1 sesión de enfoque. Total: ${sessions} Pomodoros 🏅',
+    message: `Sumaste 1 sesión de enfoque. Total: ${sessions} Pomodoros 🏅`,
   });
 
   setTimeout(() => {
     setNotification(null);
   }, 4500);
 };
+
   const register = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) {
       alert("Debes ingresar nombre, correo y contraseña");
