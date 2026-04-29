@@ -1,3 +1,5 @@
+import React from "react";
+
 function Pomodoro({
   minutes,
   secs,
@@ -5,31 +7,43 @@ function Pomodoro({
   setRunning,
   setSeconds,
 }) {
+  // 👉 Solo controla el reloj, NO desafíos
+  const handleStart = () => {
+    setRunning(true);
+  };
+
+  const handlePause = () => {
+    setRunning(false);
+  };
+
+  const handleReset = () => {
+    setRunning(false);
+    setSeconds(25 * 60);
+  };
+
   return (
     <section className="pomodoro">
       <h2>⏱️ Pomodoro</h2>
 
       <p className="pomodoro-help">
-        Presiona “Iniciar” y estudia hasta que el temporizador llegue a 0. Al
-        finalizar, sumarás 1 Pomodoro y podrás desbloquear logros 🏅
+        Presiona “Iniciar” para estudiar libremente, o inicia un desafío diario
+        desde la sección de desafíos.
       </p>
 
-      <p className="timer">
-        {minutes}:{secs.toString().padStart(2, "0")}
-      </p>
+      <div className="timer">
+        {String(minutes).padStart(2, "0")}:
+        {String(secs).padStart(2, "0")}
+      </div>
 
-      <button onClick={() => setRunning(!running)}>
-        {running ? "Pausar" : "Iniciar"}
-      </button>
+      <div>
+        <button onClick={running ? handlePause : handleStart}>
+          {running ? "Pausar" : "Iniciar"}
+        </button>
 
-      <button
-        onClick={() => {
-          setRunning(false);
-          setSeconds(25 * 60);
-        }}
-      >
-        Reiniciar
-      </button>
+        <button onClick={handleReset}>
+          Reiniciar
+        </button>
+      </div>
     </section>
   );
 }

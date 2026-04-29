@@ -6,7 +6,25 @@
 
 .grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: 2fr 1fr; /* 🔥 más espacio para tareas */
   gap: 24px;
   align-items: start;
+  width: 100%;
+}
+
+/* Asegura que cada bloque ocupe su columna correctamente */
+.tasks {
+  width: 100%;
+  grid-column: 1;
+}
+
+.ranking {
+  width: 100%;
+  grid-column: 2;
+}
+
+/* 🔥 Muy importante: evita que se rompa el grid */
+.tasks,
+.ranking {
+  min-width: 0;
 }
