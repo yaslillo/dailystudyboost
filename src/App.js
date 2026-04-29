@@ -1,6 +1,24 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import logo from "./logo.png";
+import Stats from "./components/Stats";
+import { challenges } from "./data/challenges";
+import { achievements } from "./data/achievements";
+import Streak from "./components/Streak";
+import Onboarding from "./components/Onboarding";
+import Header from "./components/Header";
+import Summary from "./components/Summary";
+import Achievements from "./components/Achievements";
+import Pomodoro from "./components/Pomodoro";
+import Tasks from "./components/Tasks";
+import Ranking from "./components/Ranking";
+import Profile from "./components/Profile";
+
+import {
+  getUserProgress,
+  saveUserProgress,
+  getRanking,
+} from "./services/userService";
 
 import { auth, db } from "./firebase";
 
@@ -11,42 +29,9 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 
-import { doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 function App() {
-  const challenges = [
-    "Día 1: Define tu meta principal",
-    "Día 2: Estudia 15 minutos sin distracciones",
-    "Día 3: Organiza tu espacio de estudio",
-    "Día 4: Usa la técnica Pomodoro\n25 min estudio + 5 min descanso\nRepite 4 veces y descansa",
-    "Día 5: Elimina 1 distracción importante",
-    "Día 6: Haz un resumen de lo aprendido",
-    "Día 7: Evalúa tu semana",
-    "Día 8: Prueba mapas mentales",
-    "Día 9: Estudia enseñando",
-    "Día 10: Técnica Feynman\nExplica con palabras simples\nSi no puedes, vuelve a estudiar",
-    "Día 11: Haz preguntas sobre el tema",
-    "Día 12: Practica con ejercicios",
-    "Día 13: Repaso activo",
-    "Día 14: Test rápido",
-    "Día 15: Estudia aunque no tengas motivación",
-    "Día 16: Bloquea redes sociales",
-    "Día 17: Haz 2 sesiones Pomodoro",
-    "Día 18: Estudia a la misma hora",
-    "Día 19: Identifica tu mejor horario",
-    "Día 20: Estudia un tema difícil primero",
-    "Día 21: Recompénsate por cumplir",
-    "Día 22: Planifica tu semana completa",
-    "Día 23: Estudio profundo 45 min",
-    "Día 24: Simula una prueba",
-    "Día 25: Corrige errores",
-    "Día 26: Enseña a alguien",
-    "Día 27: Revisa todo el progreso",
-    "Día 28: Optimiza tu método",
-    "Día 29: Estudia con máxima concentración",
-    "Día 30: Reflexión final + nuevos objetivos",
-  ];
-
   const [user, setUser] = useState(null);
   const [studentName, setStudentName] = useState("");
 
@@ -67,6 +52,35 @@ function App() {
   const [showOnboarding, setShowOnboarding] = useState(
     localStorage.getItem("onboardingSeen") !== "true"
   );
+  const [streak, setStreak] = useState(0);
+
+  const userPosition = ranking.findIndex(
+  (item) => item.email === user?.email
+) + 1;
+
+  const loadRanking = async () => {
+    try {
+      const data = await getRanking();
+      setRanking(data);
+    } catch (error) {
+      console.log("Error ranking:", error);
+    }
+  };
+
+  const loadProgress = async (uid) => {
+    const data = await getUserProgress(uid);
+
+    if (data) {
+      setCompletedDays(data.completedDays || []);
+      setStudentName(data.name || data.email || "");
+      setPomodoroSessions(data.pomodoroSessions || 0);
+      setStreak(data.streak || 0);
+    } else {
+      setCompletedDays([]);
+      setPomodoroSessions(0);
+      setStreak(0);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -79,6 +93,7 @@ function App() {
         setCompletedDays([]);
         setStudentName("");
         setPomodoroSessions(0);
+        setRanking([]);
       }
     });
 
@@ -86,25 +101,6 @@ function App() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    let timer;
-
-    if (running && seconds > 0) {
-      timer = setInterval(() => {
-        setSeconds((prev) => prev - 1);
-      }, 1000);
-    }
-
-    if (running && seconds === 0) {
-      setRunning(false);
-      completePomodoro();
-    }
-
-    return () => clearInterval(timer);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running, seconds]);
 
   const playSuccessSound = () => {
     try {
@@ -133,16 +129,70 @@ function App() {
     }
   };
 
-const showSuccessNotification = (sessions) => {
-  setNotification({
-    title: "🎉 ¡Pomodoro completado!",
-    message: `Sumaste 1 sesión de enfoque. Total: ${sessions} Pomodoros 🏅`,
-  });
+  const showSuccessNotification = (sessions) => {
+    setNotification({
+      title: "🎉 ¡Pomodoro completado!",
+      message: `Sumaste 1 sesión de enfoque. Total: ${sessions} Pomodoros 🏅`,
+    });
 
-  setTimeout(() => {
-    setNotification(null);
-  }, 4500);
-};
+    setTimeout(() => {
+      setNotification(null);
+    }, 4500);
+  };
+
+  const completePomodoro = async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    const newPomodoroSessions = pomodoroSessions + 1;
+    setPomodoroSessions(newPomodoroSessions);
+
+    const ref = doc(db, "users", currentUser.uid);
+    const snap = await getDoc(ref);
+    const oldData = snap.exists() ? snap.data() : {};
+
+    const newStreak = (oldData.streak || 0) + 1;
+    setStreak(newStreak);
+
+      await setDoc(
+      ref,
+      {
+        ...oldData,
+        name: oldData.name || studentName || currentUser.email,
+        email: currentUser.email,
+        completedDays,
+        progress: completedDays.length,
+        pomodoroSessions: newPomodoroSessions,
+      },
+      { merge: true }
+    );
+
+    playSuccessSound();
+    showSuccessNotification(newPomodoroSessions);
+
+    setSeconds(25 * 60);
+    await loadProgress(currentUser.uid);
+    await loadRanking();
+  };
+
+  useEffect(() => {
+    let timer;
+
+    if (running && seconds > 0) {
+      timer = setInterval(() => {
+        setSeconds((prev) => prev - 1);
+      }, 1000);
+    }
+
+    if (running && seconds === 0) {
+      setRunning(false);
+      completePomodoro();
+    }
+
+    return () => clearInterval(timer);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, seconds]);
 
   const register = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) {
@@ -204,93 +254,18 @@ const showSuccessNotification = (sessions) => {
     setShowOnboarding(false);
   };
 
-  const loadProgress = async (uid) => {
-    const ref = doc(db, "users", uid);
-    const snap = await getDoc(ref);
-
-    if (snap.exists()) {
-      const data = snap.data();
-      setCompletedDays(data.completedDays || []);
-      setStudentName(data.name || data.email || "");
-      setPomodoroSessions(data.pomodoroSessions || 0);
-    } else {
-      setCompletedDays([]);
-      setPomodoroSessions(0);
-    }
-  };
-
   const saveProgress = async (newDays) => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
-
-    const ref = doc(db, "users", currentUser.uid);
-    const snap = await getDoc(ref);
-    const oldData = snap.exists() ? snap.data() : {};
-
-    await setDoc(
-      ref,
-      {
-        ...oldData,
-        name: oldData.name || studentName || currentUser.email,
-        email: currentUser.email,
-        completedDays: newDays,
-        progress: newDays.length,
-        pomodoroSessions: oldData.pomodoroSessions || pomodoroSessions || 0,
-      },
-      { merge: true }
-    );
-
-    await loadProgress(currentUser.uid);
-    await loadRanking();
-  };
-
- const completePomodoro = async () => {
-  const currentUser = auth.currentUser;
-  if (!currentUser) return;
-
-const newPomodoroSessions = pomodoroSessions + 1;
-  setPomodoroSessions(newPomodoroSessions);
-
-  const ref = doc(db, "users", currentUser.uid);
-  const snap = await getDoc(ref);
-  const oldData = snap.exists() ? snap.data() : {};
-
-  await setDoc(
-    ref,
-    {
-      ...oldData,
-      name: oldData.name || studentName || currentUser.email,
-      email: currentUser.email,
-      completedDays,
-      progress: completedDays.length,
-      pomodoroSessions: newPomodoroSessions,
-    },
-    { merge: true }
-  );
-
-  playSuccessSound();
-  showSuccessNotification(newPomodoroSessions);
-
-  setSeconds(25 * 60);
-  await loadProgress(currentUser.uid);
-};
-
-  const loadRanking = async () => {
-    const snapshot = await getDocs(collection(db, "users"));
-
-    const list = snapshot.docs.map((doc) => {
-      const data = doc.data();
-
-      return {
-        ...data,
-        progress: data.completedDays
-          ? data.completedDays.length
-          : data.progress || 0,
-      };
+    await saveUserProgress({
+      studentName,
+      completedDays: newDays,
+      pomodoroSessions,
     });
 
-    const sorted = list.sort((a, b) => (b.progress || 0) - (a.progress || 0));
-    setRanking(sorted);
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      await loadProgress(currentUser.uid);
+      await loadRanking();
+    }
   };
 
   const toggleChallenge = async (index) => {
@@ -309,42 +284,12 @@ const newPomodoroSessions = pomodoroSessions + 1;
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
 
-  const achievements = [
-    { sessions: 1, title: "🎯 Primer Pomodoro" },
-    { sessions: 3, title: "🔥 Enfoque inicial" },
-    { sessions: 5, title: "🚀 Constancia" },
-    { sessions: 10, title: "🏆 Disciplina" },
-    { sessions: 20, title: "👑 Maestro del enfoque" },
-  ];
-
   const unlockedAchievements = achievements.filter(
     (achievement) => pomodoroSessions >= achievement.sessions
   );
 
   if (showOnboarding) {
-    return (
-      <div className="onboarding">
-        <img src={logo} alt="logo" className="onboarding-logo" />
-
-        <h1>Bienvenido a DailyStudyBoost 🚀✨</h1>
-
-        <p className="onboarding-text">
-          Convierte el estudio en un hábito diario 💪📚. Completa desafíos, usa
-          Pomodoro ⏱️, desbloquea logros 🏅 y sube en el ranking 🏆.
-        </p>
-
-        <ul className="onboarding-list">
-          <li>🎯 30 días para vencer la procrastinación</li>
-          <li>⏱️ Pomodoro para estudiar con enfoque</li>
-          <li>🏅 Logros que se desbloquean al cumplir</li>
-          <li>🏆 Ranking para motivarte cada día</li>
-        </ul>
-
-        <button onClick={finishOnboarding} className="start-btn">
-          Empezar ahora 🚀
-        </button>
-      </div>
-    );
+    return <Onboarding finishOnboarding={finishOnboarding} />;
   }
 
   if (!user) {
@@ -407,131 +352,46 @@ const newPomodoroSessions = pomodoroSessions + 1;
         </div>
       )}
 
-      <header className="header">
-        <img src={logo} alt="logo" className="logo" />
-        <h1>DailyStudyBoost</h1>
-        <p>Hola, {studentName || user.email} 👋</p>
+      <Header
+        studentName={studentName}
+        userEmail={user.email}
+        logout={logout}
+      />
 
-        <p className="description">
-          🚀 Mejora tu enfoque y vence la procrastinación con desafíos diarios y
-          la técnica Pomodoro. Completa 30 días de hábitos de estudio, sigue tu
-          progreso y compite en el ranking con otros estudiantes.
-        </p>
+      <Profile
+        studentName={studentName}
+        userEmail={user.email}
+        userId={user.uid}
+        reloadUser={() => loadProgress(user.uid)}
+      />
 
-        <button onClick={logout}>Cerrar sesión</button>
-      </header>
+      {userPosition > 0 && (
+  <div className="ranking-position">
+    🏆 Tu posición: #{userPosition}
+  </div>
+)}
 
-      <section className="summary">
-        <h2>Progreso</h2>
+      <Summary completedDays={completedDays} pomodoroSessions={pomodoroSessions} />
+      <Stats completedDays={completedDays} pomodoroSessions={pomodoroSessions} />
+      <Streak streak={streak} />
+      <Achievements unlockedAchievements={unlockedAchievements} />
 
-        <div className="progress-bar">
-          <div
-            className="progress-fill"
-            style={{ width: (completedDays.length / 30) * 100 + "%" }}
-          ></div>
-        </div>
-
-        <p>{completedDays.length}/30 días completados</p>
-        <p>⏱️ Pomodoros completados: {pomodoroSessions}</p>
-      </section>
-
-      <section className="achievements">
-        <h2>🏅 Logros desbloqueados</h2>
-
-        <p className="section-help">
-          Inicia el temporizador Pomodoro y completa sesiones de enfoque. Cada
-          Pomodoro terminado desbloquea nuevos logros.
-        </p>
-
-        {unlockedAchievements.length === 0 ? (
-          <p>
-            Aún no tienes logros. Presiona “Iniciar” en el Pomodoro, completa la
-            sesión y desbloquea tu primer logro 🎯⏱️
-          </p>
-        ) : (
-          <div className="achievement-list">
-            {unlockedAchievements.map((achievement, index) => (
-              <div className="achievement-card achievement-pop" key={index}>
-                {achievement.title}
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="pomodoro">
-        <h2>⏱️ Pomodoro</h2>
-
-        <p className="pomodoro-help">
-          Presiona “Iniciar” y estudia hasta que el temporizador llegue a 0. Al
-          finalizar, sumarás 1 Pomodoro y podrás desbloquear logros 🏅
-        </p>
-
-        <p className="timer">
-          {minutes}:{secs.toString().padStart(2, "0")}
-        </p>
-
-        <button onClick={() => setRunning(!running)}>
-          {running ? "Pausar" : "Iniciar"}
-        </button>
-
-        <button
-          onClick={() => {
-            setRunning(false);
-            setSeconds(25 * 60);
-          }}
-        >
-          Reiniciar
-        </button>
-      </section>
+      <Pomodoro
+        minutes={minutes}
+        secs={secs}
+        running={running}
+        setRunning={setRunning}
+        setSeconds={setSeconds}
+      />
 
       <div className="grid">
-        <section className="tasks">
-          <h2>Desafío 30 días</h2>
+        <Tasks
+          challenges={challenges}
+          completedDays={completedDays}
+          toggleChallenge={toggleChallenge}
+        />
 
-          <ul>
-            {challenges.map((challenge, index) => (
-              <li
-                key={index}
-                onClick={() => toggleChallenge(index)}
-                className={completedDays.includes(index) ? "done" : ""}
-              >
-                {challenge}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="ranking">
-          <h2>🏆 Ranking</h2>
-
-          <div className="ranking-list">
-            {ranking.map((student, index) => {
-              const medals = ["🥇", "🥈", "🥉"];
-
-              let rankClass = "ranking-card";
-              if (index === 0) rankClass += " gold";
-              if (index === 1) rankClass += " silver";
-              if (index === 2) rankClass += " bronze";
-
-              return (
-                <div className={rankClass} key={index}>
-                  <div className="rank-position">
-                    {medals[index] || "#" + (index + 1)}
-                  </div>
-
-                  <div className="rank-info">
-                    <p className="rank-name">{student.name || student.email}</p>
-
-                    <p className="rank-progress">
-                      {student.progress || 0} días completados
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+        <Ranking ranking={ranking} />
       </div>
     </div>
   );

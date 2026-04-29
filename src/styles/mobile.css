@@ -1,0 +1,29 @@
+@media (max-width: 768px) {
+  .app {
+    padding: 12px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header h1 {
+    font-size: 28px;
+  }
+
+  .timer {
+    font-size: 36px;
+  }
+
+  .logo {
+    width: 85px;
+    height: 85px;
+  }
+
+  .toast {
+    left: 12px;
+    right: 12px;
+    top: 15px;
+    max-width: none;
+  }
+}
