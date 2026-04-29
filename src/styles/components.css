@@ -333,6 +333,30 @@ button:hover {
   box-shadow: 0 6px 15px rgba(0, 80, 160, 0.2);
 }
 
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-btn {
+  display: inline-block;
+  background: #1f7acf;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
 .rank-avatar {
   width: 46px;
   height: 46px;

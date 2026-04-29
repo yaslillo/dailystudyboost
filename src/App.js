@@ -53,6 +53,7 @@ function App() {
     localStorage.getItem("onboardingSeen") !== "true"
   );
   const [streak, setStreak] = useState(0);
+  const [userPhoto, setUserPhoto] = useState("");
 
   const userPosition = ranking.findIndex(
   (item) => item.email === user?.email
@@ -75,10 +76,12 @@ function App() {
       setStudentName(data.name || data.email || "");
       setPomodoroSessions(data.pomodoroSessions || 0);
       setStreak(data.streak || 0);
+      setUserPhoto(data.photoURL || "");
     } else {
       setCompletedDays([]);
       setPomodoroSessions(0);
       setStreak(0);
+      setUserPhoto("");
     }
   };
 
@@ -362,6 +365,7 @@ function App() {
         studentName={studentName}
         userEmail={user.email}
         userId={user.uid}
+        userPhoto={userPhoto}
         reloadUser={() => loadProgress(user.uid)}
       />
 
