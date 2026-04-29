@@ -376,3 +376,117 @@ button:hover {
   height: 100%;
   object-fit: cover;
 }
+
+.streak-number {
+  font-size: 52px;
+  font-weight: bold;
+  color: #1f7acf;
+  transition: all 0.3s ease;
+}
+
+/* 🔥 Animación cuando hay racha */
+.streak-fire {
+  animation: streakPulse 1s ease-in-out infinite;
+}
+
+@keyframes streakPulse {
+  0% {
+    transform: scale(1);
+    text-shadow: 0 0 0 rgba(255, 120, 0, 0);
+  }
+
+  50% {
+    transform: scale(1.15);
+    text-shadow: 0 0 20px rgba(255, 120, 0, 0.8);
+  }
+
+  100% {
+    transform: scale(1);
+    text-shadow: 0 0 0 rgba(255, 120, 0, 0);
+  }
+}
+
+.streak {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+}
+
+.streak-number {
+  font-size: 58px;
+  font-weight: 900;
+  margin: 12px 0;
+  color: #1f7acf;
+}
+
+.streak-message {
+  font-weight: 600;
+}
+
+/* Nivel 1 */
+.streak-fire-blue .streak-number {
+  animation: streakPulse 1.2s ease-in-out infinite;
+  color: #1f7acf;
+}
+
+/* Nivel 3 */
+.streak-fire-orange {
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+}
+
+.streak-fire-orange .streak-number {
+  animation: streakPulse 1s ease-in-out infinite;
+  color: #f97316;
+  text-shadow: 0 0 14px rgba(249, 115, 22, 0.45);
+}
+
+/* Nivel 7 */
+.streak-fire-gold {
+  background: linear-gradient(135deg, #fff7cc, #fde68a);
+}
+
+.streak-fire-gold .streak-number {
+  animation: streakPulse 0.9s ease-in-out infinite;
+  color: #d97706;
+  text-shadow: 0 0 18px rgba(217, 119, 6, 0.6);
+}
+
+/* Nivel 14 */
+.streak-legend {
+  background: linear-gradient(135deg, #fff1b8, #ffd166, #ff9f1c);
+  box-shadow: 0 0 25px rgba(255, 159, 28, 0.35);
+}
+
+.streak-legend .streak-number {
+  animation: streakLegend 0.9s ease-in-out infinite;
+  color: white;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.9);
+}
+
+@keyframes streakPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.14);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes streakLegend {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+
+  50% {
+    transform: scale(1.18) rotate(-2deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}

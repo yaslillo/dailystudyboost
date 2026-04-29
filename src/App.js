@@ -13,6 +13,7 @@ import Pomodoro from "./components/Pomodoro";
 import Tasks from "./components/Tasks";
 import Ranking from "./components/Ranking";
 import Profile from "./components/Profile";
+import "./styles/components.css";
 
 import {
   getUserProgress,
@@ -77,6 +78,7 @@ function App() {
       setPomodoroSessions(data.pomodoroSessions || 0);
       setStreak(data.streak || 0);
       setUserPhoto(data.photoURL || "");
+
     } else {
       setCompletedDays([]);
       setPomodoroSessions(0);
@@ -154,8 +156,24 @@ function App() {
     const snap = await getDoc(ref);
     const oldData = snap.exists() ? snap.data() : {};
 
-    const newStreak = (oldData.streak || 0) + 1;
-    setStreak(newStreak);
+   
+
+    const today = new Date().toDateString();
+    const yesterday = new Date();
+     yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayString = yesterday.toDateString();
+
+    const lastStudyDate = oldData.lastStudyDate || "";
+
+     let newStreak = oldData.streak || 0;
+
+        if (lastStudyDate === today) {
+       newStreak = oldData.streak || 1;
+      } else if (lastStudyDate === yesterdayString) {
+    newStreak = newStreak + 1;
+      } else {
+   newStreak = 1;
+    }
 
       await setDoc(
       ref,
@@ -166,6 +184,8 @@ function App() {
         completedDays,
         progress: completedDays.length,
         pomodoroSessions: newPomodoroSessions,
+        streak: newStreak,
+        lastStudyDate: today,
       },
       { merge: true }
     );
@@ -362,16 +382,38 @@ function App() {
       />
 
       <Profile
-        studentName={studentName}
-        userEmail={user.email}
-        userId={user.uid}
-        userPhoto={userPhoto}
-        reloadUser={() => loadProgress(user.uid)}
-      />
+  studentName={studentName}
+  userEmail={user.email}
+  userId={user.uid}
+  userPhoto={userPhoto}
+  reloadUser={() => loadProgress(user.uid)}
+  streak={streak}
+  completedDays={completedDays.length}
+  pomodoroSessions={pomodoroSessions}
+  rankingPosition={
+    ranking.findIndex((student) => student.id === user.uid) + 1
+  }
+/>
 
-      {userPosition > 0 && (
-  <div className="ranking-position">
-    🏆 Tu posición: #{userPosition}
+{userPosition > 0 && (
+  <div className="pomodoro-message">
+    {completedDays.length >= 30
+      ? "👑 Completaste los 30 días. Nivel leyenda desbloqueado."
+      : userPosition === 1 && completedDays.length >= 10
+      ? "🏆 Vas #1 en el ranking. Mantén tu lugar con otro Pomodoro."
+      : streak >= 7
+      ? `🔥 ${streak} días de racha. Esto ya es disciplina real.`
+      : streak >= 3
+      ? `💪 ${streak} días seguidos. El hábito ya empezó.`
+      : pomodoroSessions >= 10
+      ? `🍅 ${pomodoroSessions} Pomodoros. Estás entrando en flow.`
+      : completedDays.length >= 15
+      ? `🚀 ${completedDays.length}/30 días. Ya pasaste la mitad.`
+      : completedDays.length >= 5
+      ? `🌱 ${completedDays.length} días completados. La constancia está creciendo.`
+      : pomodoroSessions >= 1
+      ? "🍅 Primer Pomodoro listo. Ahora construye ritmo."
+      : "🔥 Haz 1 Pomodoro hoy. Solo uno. Empieza ahí."}
   </div>
 )}
 
