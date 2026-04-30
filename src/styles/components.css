@@ -629,3 +629,7 @@ button:hover {
 .task-card button {
   flex-shrink: 0;
 }
+
+.task-card h3 {
+  white-space: pre-line;
+}
