@@ -1,100 +1,129 @@
 @media (max-width: 768px) {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
   .app {
+    width: 100%;
+    max-width: 100%;
     padding: 12px;
+    box-sizing: border-box;
   }
 
-  /* 🔥 Grid pasa a columna */
-  .grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+  .header {
+    padding: 22px 16px;
+    border-radius: 24px;
   }
 
-  /* Header */
   .header h1 {
-    font-size: 26px;
+    font-size: 28px;
+    line-height: 1.2;
   }
 
-  /* Pomodoro */
-  .pomodoro {
-    padding: 18px;
+  .description {
+    font-size: 15px;
   }
 
-  .timer {
-    font-size: 42px;
-  }
-
-  /* Logo */
-  .logo {
-    width: 80px;
-    height: 80px;
-  }
-
-  /* Cards generales */
+  .profile,
   .summary,
   .stats,
   .streak,
   .achievements,
+  .pomodoro,
   .tasks,
-  .ranking {
-    padding: 18px;
-    margin-top: 16px;
+  .ranking,
+  .challenge-progress {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 20px !important;
+    margin-top: 18px;
+    box-sizing: border-box;
+    text-align: center;
   }
 
-  /* 🔥 Tasks */
+  .profile h2,
+  .ranking h2,
+  .tasks h2 {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .profile p {
+    font-size: 16px;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .upload-btn,
+  .profile button,
+  .header button {
+    width: 100%;
+    max-width: 260px;
+    margin: 10px auto;
+    display: block;
+  }
+
+  .grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 18px !important;
+    width: 100% !important;
+  }
+
+  .tasks {
+    order: 1;
+  }
+
+  .ranking {
+    order: 2;
+  }
+
   .task-card {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    text-align: center;
+    gap: 12px;
   }
 
   .task-card span {
-    font-size: 14px;
+    font-size: 15px;
+    line-height: 1.45;
   }
 
   .task-card button {
     width: 100%;
+    margin: 0;
   }
 
-  /* Ranking */
   .ranking-card {
-    padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
-  .rank-name {
-    font-size: 14px;
-  }
-
-  .rank-progress {
-    font-size: 12px;
-  }
-
-  /* Stats grid */
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  /* Achievements */
+  .stats-grid,
   .achievement-list {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
-  /* Login */
+  .timer {
+    font-size: 44px;
+  }
+
   .login-box {
-    margin: 20px 10px;
-    padding: 20px;
+    width: 100%;
+    max-width: 100%;
+    margin: 20px 0;
+    padding: 24px;
+    box-sizing: border-box;
   }
 
-  /* Toast */
   .toast {
     left: 12px;
     right: 12px;
     top: 12px;
     max-width: none;
-  }
-
-  /* 🔥 Barra progreso */
-  .challenge-progress {
-    padding: 14px;
-    font-size: 14px;
   }
 }

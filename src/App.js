@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "./App.css";
-import "./styles/components.css";
 
 import Header from "./components/Header";
 import Onboarding from "./components/Onboarding";
@@ -127,7 +126,7 @@ const startChallengePomodoro = (index) => {
   setActiveChallengeIndex(index);
   setPomodoroFinished(false);
   startPomodoro();
-  
+
 };
 
   const completeActiveChallenge = async (index) => {
